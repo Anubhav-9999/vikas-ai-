@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Racing Challenge</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      min-height: 100vh;
+    }
+    .game-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+    .btn-race {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border: none;
+      color: white;
+      transition: all 0.3s ease;
+    }
+    .btn-race:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+    .correct {
+      animation: pulse 0.5s;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+  <div id="app" class="w-full max-w-2xl game-card p-8 rounded-xl">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+        Math Racing
+      </h1>
+      <div class="text-right">
+        <p>⏱ Time Left: <span id="timer">60</span>s</p>
+        <p>🏁 Problem <span id="current">1</span>/10</p>
+      </div>
+    </div>
+
+    <div id="question-container" class="mb-6">
+      <h2 id="question" class="text-2xl font-semibold mb-4">Loading...</h2>
+      <div id="options" class="grid grid-cols-2 gap-3"></div>
+    </div>
+
+    <div id="feedback" class="hidden mb-4 p-4 rounded-lg bg-blue-900/30 border border-blue-500/50">
+      <p id="feedback-text" class="text-center"></p>
+    </div>
+
+    <button id="next-btn" class="btn-race w-full py-3 rounded-lg font-bold hidden">Next</button>
+  </div>
+
+  <script>
+    AOS.init();
+    feather.replace();
+
+    const totalQuestions = 10;
+    let gameState = {
+      current: 0,
+      score: 0,
+      timeLeft: 60,
+      timerId: null,
+      questions: []
+    };
+
+    // Generate random math questions
+    function generateQuestions() {
+      const questions = [];
+      for (let i = 0; i < totalQuestions; i++) {
+        const a = Math.floor(Math.random() * 20) + 1;
+        const b = Math.floor(Math.random() * 20) + 1;
+        const op = ['+', '-', '×', '÷'][Math.floor(Math.random() * 4)];
+        let answer;
+        switch(op) {
+          case '+': answer = a + b; break;
+          case '-': answer = a - b; break;
+          case '×': answer = a * b; break;
+          case '÷': 
+            answer = (a * b) / b; // ensures divisible
+            break;
+        }
+        const question = `${a} ${op} ${b} = ?`;
+        const correct = answer;
+        const options = [correct];
+        while (options.length < 4) {
+          let wrong = correct + Math.floor(Math.random() * 10) - 5;
+          if (!options.includes(wrong)) options.push(wrong);
+        }
+        options.sort(() => Math.random() - 0.5);
+        questions.push({question, options, answer: correct});
+      }
+      return questions;
+    }
+
+    // DOM Elements
+    const qEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const feedbackEl = document.getElementById('feedback');
+    const feedbackTextEl = document.getElementById('feedback-text');
+    const nextBtn = document.getElementById('next-btn');
+    const timerEl = document.getElementById('timer');
+    const currentEl = document.getElementById('current');
+
+    function startGame() {
+      gameState.questions = generateQuestions();
+      gameState.current = 0;
+      gameState.score = 0;
+      gameState.timeLeft = 60;
+      startTimer();
+      loadQuestion();
+    }
+
+    function startTimer() {
+      gameState.timerId = setInterval(() => {
+        gameState.timeLeft--;
+        timerEl.textContent = gameState.timeLeft;
+        if (gameState.timeLeft <= 0) {
+          clearInterval(gameState.timerId);
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function loadQuestion() {
+      if (gameState.current >= totalQuestions) {
+        endGame();
+        return;
+      }
+      const q = gameState.questions[gameState.current];
+      qEl.textContent = q.question;
+      currentEl.textContent = gameState.current + 1;
+      optionsEl.innerHTML = '';
+      q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-race py-3 px-4 rounded-lg';
+        btn.textContent = opt;
+        btn.onclick = () => selectAnswer(opt);
+        optionsEl.appendChild(btn);
+      });
+      feedbackEl.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+    }
+
+    function selectAnswer(choice) {
+      const q = gameState.questions[gameState.current];
+      if (choice === q.answer) {
+        gameState.score++;
+        feedbackTextEl.textContent = "✅ Correct!";
+        feedbackEl.classList.remove('hidden');
+        feedbackEl.classList.add('bg-green-900/30', 'border-green-500/50');
+      } else {
+        feedbackTextEl.textContent = `❌ Wrong! Answer: ${q.answer}`;
+        feedbackEl.classList.remove('hidden');
+        feedbackEl.classList.add('bg-red-900/30', 'border-red-500/50');
+      }
+      nextBtn.classList.remove('hidden');
+    }
+
+    nextBtn.addEventListener('click', () => {
+      gameState.current++;
+      loadQuestion();
+    });
+
+    function endGame() {
+      qEl.textContent = `Game Over! You solved ${gameState.score}/${totalQuestions} correctly.`;
+      optionsEl.innerHTML = '';
+      feedbackEl.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+      const restartBtn = document.createElement('button');
+      restartBtn.className = 'btn-race w-full py-3 rounded-lg font-bold';
+      restartBtn.textContent = 'Play Again';
+      restartBtn.onclick = () => {
+        clearInterval(gameState.timerId);
+        startGame();
+      };
+      optionsEl.appendChild(restartBtn);
+    }
+
+    startGame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Virtual Goodies — Avatars, Stickers, Badges & Trophy Cabinet</title>
+  <style>
+    :root{
+      --bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#6ee7b7;--glass:rgba(255,255,255,0.04);
+      --accent-2:#60a5fa;--gold:#FFC857;--silver:#C0C0C0;--bronze:#CD7F32;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#071127 0%, #071b2a 60%);color:#e6eef6;padding:24px}
+    h1,h2{margin:0 0 12px 0}
+    .wrap{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:360px 1fr;gap:20px}
+
+    /* Sidebar - customization */
+    .panel{background:var(--card);padding:18px;border-radius:14px;box-shadow:0 6px 18px rgba(2,8,23,0.6)}
+    .avatar-preview{display:flex;align-items:center;gap:14px}
+    .avatar-canvas{width:120px;height:120px;border-radius:14px;background:var(--glass);display:flex;align-items:center;justify-content:center}
+    .controls{display:flex;flex-direction:column;gap:8px}
+    label{font-size:13px;color:var(--muted)}
+    select,input[type=range]{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    button{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:10px 12px;border-radius:10px;color:#052023;font-weight:700;cursor:pointer}
+    .small{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:8px}
+
+    /* Main area */
+    .grid{display:grid;grid-template-columns:1fr 340px;gap:20px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:18px;border-radius:14px}
+
+    /* Sticker / Badge Bank */
+    .bank{display:flex;flex-wrap:wrap;gap:10px}
+    .item{width:72px;height:72px;border-radius:10px;background:var(--glass);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:1px solid rgba(255,255,255,0.03)}
+    .item.locked{opacity:0.45;filter:grayscale(60%)}
+
+    /* Trophy cabinet */
+    .trophies{display:flex;gap:12px;align-items:flex-end}
+    .trophy{width:84px;height:120px;border-radius:10px;background:linear-gradient(180deg,#071428 0%, #07102a 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:8px;position:relative;border:1px solid rgba(255,255,255,0.03)}
+    .trophy .cup{font-size:34px}
+    .xp{position:absolute;left:8px;top:8px;background:rgba(255,255,255,0.06);padding:6px;border-radius:8px;font-size:12px}
+    .badge{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:13px;margin-right:6px}
+
+    /* Collection */
+    .collection{display:flex;flex-wrap:wrap;gap:12px}
+
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+
+    /* Responsive */
+    @media (max-width:900px){.wrap{grid-template-columns:1fr;}.grid{grid-template-columns:1fr}.avatar-canvas{width:88px;height:88px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <h1 style="font-size:18px">Virtual Goodies</h1>
+      <p style="color:var(--muted);margin-bottom:14px">Create an avatar, collect stickers & badges, and unlock trophies. Data saved locally in your browser.</p>
+
+      <div class="avatar-preview card" style="margin-bottom:12px">
+        <div class="avatar-canvas" id="avatarCanvas" title="Your avatar">
+          <!-- SVG avatar will render here -->
+        </div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <strong id="playerName">Player</strong>
+              <div style="color:var(--muted);font-size:13px">Level <span id="playerLevel">1</span> • XP <span id="playerXP">0</span></div>
+            </div>
+            <div style="text-align:right">
+              <button id="earnXPBtn" class="small">+ Earn XP</button>
+            </div>
+          </div>
+
+          <div class="controls" style="margin-top:10px">
+            <label>Choose head</label>
+            <select id="headSelect">
+              <option value="head1">Round</option>
+              <option value="head2">Square</option>
+              <option value="head3">Robot</option>
+            </select>
+
+            <label>Choose skin</label>
+            <select id="skinSelect">
+              <option value="#FFD19A">Peach</option>
+              <option value="#C2F6FF">Mint</option>
+              <option value="#E0D7FF">Lavender</option>
+            </select>
+
+            <label>Accessory</label>
+            <select id="accSelect">
+              <option value="none">None</option>
+              <option value="glasses">Glasses</option>
+              <option value="hat">Hat</option>
+            </select>
+
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button id="saveAvatar" class="small">Save Avatar</button>
+              <button id="downloadAvatar" class="small">Download PNG</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h2 style="font-size:14px">Your Badges</h2>
+        <div id="badgeRow" style="margin-top:10px"></div>
+      </div>
+
+    </div>
+
+    <div>
+      <div class="grid">
+        <div class="card">
+          <h2 style="font-size:16px">Sticker & Badge Bank</h2>
+          <p style="color:var(--muted);font-size:13px">Click to collect. Some items are locked and require XP or badges.</p>
+
+          <div style="margin-top:12px">
+            <h3 style="font-size:13px;margin-bottom:8px">Stickers</h3>
+            <div class="bank" id="stickerBank">
+              <!-- stickers inserted by JS -->
+            </div>
+          </div>
+
+          <hr style="margin:14px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)">
+
+          <div>
+            <h3 style="font-size:13px;margin-bottom:8px">Badges</h3>
+            <div class="bank" id="badgeBank"></div>
+          </div>
+
+        </div>
+
+        <div class="card">
+          <h2 style="font-size:16px">Trophy Cabinet</h2>
+          <div style="color:var(--muted);font-size:13px;margin-bottom:10px">Collect trophies by spending XP or unlocking sets.</div>
+
+          <div class="trophies" id="trophyRow">
+            <!-- trophies by JS -->
+          </div>
+
+          <div style="margin-top:12px">
+            <div style="display:flex;gap:8px;align-items:center">
+              <button id="spendBtn">Spend 50 XP for Bronze</button>
+              <div style="flex:1;text-align:right;color:var(--muted)">XP: <strong id="xpCountInline">0</strong></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h2 style="font-size:16px">Collection</h2>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:10px">Your collected stickers, badges and trophies are shown below.</div>
+        <div class="collection" id="collectionArea"></div>
+        <footer>Tip: Data is stored locally. To reset, open the console and run <code>localStorage.clear()</code>.</footer>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Data model and persistence ---
+    const defaultState = {
+      name: 'Player', xp: 0, level:1, avatar:{head:'head1',skin:'#FFD19A',acc:'none'},
+      stickers:[], badges:[], trophies:[]
+    };
+    const DB_KEY = 'virtual_goodies_v1';
+    function loadState(){try{return JSON.parse(localStorage.getItem(DB_KEY))||defaultState}catch(e){return defaultState}}
+    function saveState(){localStorage.setItem(DB_KEY, JSON.stringify(state))}
+    let state = loadState();
+
+    // --- UI references ---
+    const avatarCanvas = document.getElementById('avatarCanvas');
+    const headSelect = document.getElementById('headSelect');
+    const skinSelect = document.getElementById('skinSelect');
+    const accSelect = document.getElementById('accSelect');
+    const playerName = document.getElementById('playerName');
+    const playerLevel = document.getElementById('playerLevel');
+    const playerXP = document.getElementById('playerXP');
+    const earnXPBtn = document.getElementById('earnXPBtn');
+    const saveAvatar = document.getElementById('saveAvatar');
+    const downloadAvatar = document.getElementById('downloadAvatar');
+    const stickerBank = document.getElementById('stickerBank');
+    const badgeBank = document.getElementById('badgeBank');
+    const collectionArea = document.getElementById('collectionArea');
+    const badgeRow = document.getElementById('badgeRow');
+    const trophyRow = document.getElementById('trophyRow');
+    const xpCountInline = document.getElementById('xpCountInline');
+
+    // --- Available items ---
+    const STICKERS = [
+      {id:'s1',icon:'🎉',cost:10,locked:false},
+      {id:'s2',icon:'🔥',cost:15,locked:false},
+      {id:'s3',icon:'🌟',cost:30,locked:true,reqXP:30},
+      {id:'s4',icon:'🚀',cost:40,locked:true,reqXP:60},
+      {id:'s5',icon:'🧠',cost:25,locked:false}
+    ];
+    const BADGES = [
+      {id:'b1',title:'Explorer',desc:'Collect 3 stickers',req:{stickers:3}},
+      {id:'b2',title:'Veteran',desc:'Reach 200 XP',req:{xp:200}},
+      {id:'b3',title:'Collector',desc:'Collect 6 stickers',req:{stickers:6}},
+    ];
+    const TROPHIES = [
+      {id:'t_br',tier:'bronze',cost:50},
+      {id:'t_sl',tier:'silver',cost:150},
+      {id:'t_go',tier:'gold',cost:400}
+    ];
+
+    // --- Avatar renderer: simple SVG generator ---
+    function renderAvatar(){
+      const {head,skin,acc} = state.avatar;
+      const svgParts = [];
+      // head shapes
+      if(head==='head1'){
+        svgParts.push(`<rect x="18" y="14" rx="28" ry="28" width="92" height="92" fill="${skin}"/>`)
+      }else if(head==='head2'){
+        svgParts.push(`<rect x="18" y="14" rx="14" ry="14" width="92" height="92" fill="${skin}"/>`)
+      }else{
+        svgParts.push(`<g transform="translate(64,60)"><rect x="-44" y="-36" rx="6" ry="6" width="88" height="72" fill="${skin}"/></g>`)
+      }
+      // eyes
+      svgParts.push(`<circle cx="44" cy="58" r="6" fill="#111827"/><circle cx="84" cy="58" r="6" fill="#111827"/>`)
+      // mouth
+      svgParts.push(`<path d="M44 84 q20 12 40 0" stroke="#0b1220" stroke-width="4" fill="none" stroke-linecap="round"/>`)
+      // accessory
+      if(acc==='glasses'){
+        svgParts.push(`<rect x="30" y="48" width="28" height="16" rx="4" fill="rgba(0,0,0,0.6)"/>`)
+        svgParts.push(`<rect x="70" y="48" width="28" height="16" rx="4" fill="rgba(0,0,0,0.6)"/>`)
+        svgParts.push(`<rect x="58" y="54" width="8" height="2" fill="rgba(0,0,0,0.6)"/>`)
+      }
+      if(acc==='hat'){
+        svgParts.push(`<rect x="12" y="6" width="104" height="20" rx="10" fill="#1f2937"/>`)
+        svgParts.push(`<rect x="30" y="-6" width="68" height="18" rx="8" fill="#111827"/>`)
+      }
+      const svg = `<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">`+
+                `<rect width="128" height="128" rx="14" fill="transparent"/>`+
+                svgParts.join('')+`</svg>`;
+      avatarCanvas.innerHTML = svg;
+    }
+
+    // --- Stickers & Badges UI setup ---
+    function buildBanks(){
+      stickerBank.innerHTML = '';
+      STICKERS.forEach(s=>{
+        const el = document.createElement('div'); el.className='item'+(isLockedSticker(s)?' locked':''); el.title = s.id + (s.cost?(' • ' + s.cost+' XP'):''); el.innerText = s.icon;
+        el.onclick = ()=>collectSticker(s);
+        stickerBank.appendChild(el);
+      });
+
+      badgeBank.innerHTML = '';
+      BADGES.forEach(b=>{
+        const el = document.createElement('div'); el.className='item'; el.title = b.desc || b.title; el.innerHTML = '<div style="font-size:12px;text-align:center">'+b.title+'</div>';
+        el.onclick = ()=>claimBadge(b);
+        badgeBank.appendChild(el);
+      });
+    }
+
+    function isLockedSticker(s){
+      if(!s.locked) return false;
+      return (state.xp < (s.reqXP||9999));
+    }
+
+    function collectSticker(s){
+      if(isLockedSticker(s)){alert('Sticker locked — earn more XP to unlock!');return}
+      if(state.stickers.includes(s.id)){alert('You already have this sticker.') ;return}
+      if(state.xp < s.cost){alert('Not enough XP. Earn more by clicking +Earn XP.');return}
+      state.xp -= s.cost; state.stickers.push(s.id); saveState(); renderAll();
+      maybeAwardBadge();
+    }
+
+    function maybeAwardBadge(){
+      // award simple badges based on state
+      BADGES.forEach(b=>{
+        if(state.badges.includes(b.id)) return;
+        if(b.req){
+          if(b.req.xp && state.xp+0 >= b.req.xp) {state.badges.push(b.id)}
+          if(b.req.stickers && state.stickers.length >= b.req.stickers) {state.badges.push(b.id)}
+        }
+      });
+      saveState();
+    }
+
+    function claimBadge(b){
+      if(state.badges.includes(b.id)){alert('Badge already claimed');return}
+      // allow claiming only if requirements met
+      const req = b.req||{};
+      if(req.xp && (state.xp < req.xp)){alert('Not enough XP for this badge');return}
+      if(req.stickers && (state.stickers.length < req.stickers)){alert('Collect more stickers to unlock this badge');return}
+      state.badges.push(b.id); saveState(); renderAll();
+    }
+
+    // --- Trophy purchase ---
+    document.getElementById('spendBtn').addEventListener('click', ()=>{
+      if(state.xp >= 50){state.xp -= 50; state.trophies.push('t_br'); saveState(); renderAll(); alert('Bronze trophy unlocked!')}
+      else alert('Not enough XP (requires 50)');
+    });
+
+    // --- Earn XP button ---
+    earnXPBtn.addEventListener('click', ()=>{
+      const amount = Math.floor(Math.random()*12)+8; // random small XP
+      state.xp += amount;
+      // level up for every 200 xp
+      const oldLevel = state.level;
+      state.level = 1 + Math.floor(state.xp/200);
+      saveState(); renderAll();
+      if(state.level>oldLevel) alert('Level up! You reached level '+state.level)
+    });
+
+    // --- Avatar save/download ---
+    saveAvatar.addEventListener('click', ()=>{ state.avatar.head = headSelect.value; state.avatar.skin = skinSelect.value; state.avatar.acc = accSelect.value; saveState(); renderAll(); alert('Avatar saved') });
+    downloadAvatar.addEventListener('click', ()=>{
+      // render svg to canvas and download PNG
+      const svg = avatarCanvas.querySelector('svg'); if(!svg) return;
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas'); canvas.width=512; canvas.height=512; const ctx = canvas.getContext('2d');
+      const img = new Image(); const svgBlob = new Blob([svgData], {type:'image/svg+xml;charset=utf-8'}); const url = URL.createObjectURL(svgBlob);
+      img.onload = ()=>{ ctx.drawImage(img,0,0,512,512); URL.revokeObjectURL(url); const a=document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download='avatar.png'; a.click(); }
+      img.src = url;
+    });
+
+    // --- Rendering collection, badges, trophies ---
+    function renderAll(){
+      // avatar
+      headSelect.value = state.avatar.head; skinSelect.value = state.avatar.skin; accSelect.value = state.avatar.acc;
+      playerName.innerText = state.name; playerLevel.innerText = state.level; playerXP.innerText = state.xp; xpCountInline.innerText = state.xp;
+      renderAvatar();
+
+      // banks
+      buildBanks();
+
+      // badges row
+      badgeRow.innerHTML = '';
+      state.badges.forEach(bid=>{
+        const b = BADGES.find(x=>x.id===bid);
+        const el = document.createElement('span'); el.className='badge'; el.innerText = b?b.title:bid; badgeRow.appendChild(el);
+      });
+
+      // trophy row
+      trophyRow.innerHTML='';
+      state.trophies.forEach(tid=>{
+        const t = TROPHIES.find(x=>tid.includes(x.id) || tid===x.id || ('t_'+x.tier.slice(0,2))===tid ) || TROPHIES.find(x=>x.id===tid);
+        const el = document.createElement('div'); el.className='trophy'; el.innerHTML = `<div class="xp">${t?('cost '+t.cost):''}</div><div class="cup">${t?tierToCup(t.tier):'🏆'}</div><div style="font-size:12px;margin-top:8px">${t?t.tier:'trophy'}</div>`;
+        trophyRow.appendChild(el);
+      });
+
+      // collection area
+      collectionArea.innerHTML='';
+      // stickers
+      state.stickers.forEach(sid=>{ const st = STICKERS.find(x=>x.id===sid); if(st){const el=document.createElement('div');el.className='item';el.style.width='64px';el.style.height='64px';el.innerText=st.icon;collectionArea.appendChild(el)}})
+      // badges
+      state.badges.forEach(bid=>{ const b = BADGES.find(x=>x.id===bid); const el=document.createElement('div');el.className='item';el.style.width='120px';el.style.height='44px';el.innerText=b.title;collectionArea.appendChild(el)})
+      // trophies
+      state.trophies.forEach(tid=>{ const el=document.createElement('div');el.className='item';el.style.width='64px';el.style.height='84px';el.innerText='🏆';collectionArea.appendChild(el)});
+    }
+
+    function tierToCup(tier){ if(!tier) return '🏆'; if(tier==='gold') return '🥇'; if(tier==='silver') return '🥈'; if(tier==='bronze') return '🥉'; return '🏆'}
+
+    // --- Init ---
+    (function init(){
+      // set inputs
+      headSelect.value = state.avatar.head; skinSelect.value = state.avatar.skin; accSelect.value = state.avatar.acc;
+      headSelect.addEventListener('change', ()=>{ state.avatar.head = headSelect.value; renderAvatar(); });
+      skinSelect.addEventListener('change', ()=>{ state.avatar.skin = skinSelect.value; renderAvatar(); });
+      accSelect.addEventListener('change', ()=>{ state.avatar.acc = accSelect.value; renderAvatar(); });
+
+      // build bank and render current state
+      renderAll();
+    })();
+
+    // --- Small helpers to debug in console ---
+    window.vg = {state,saveState,renderAll,STICKERS,BADGES,TROPHIES};
+  </script>
+</body>
+</html>

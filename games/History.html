@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History Quiz Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f0f8ff;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            background: #4682b4;
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        .quiz-container {
+            margin: 30px auto;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .question-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .options button {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #87ceeb;
+            transition: 0.3s;
+        }
+        .options button:hover {
+            background: #4682b4;
+            color: white;
+        }
+        .message {
+            font-size: 20px;
+            margin-top: 20px;
+            color: green;
+            font-weight: bold;
+        }
+        .xp-button {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background: gold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .xp-button:hover {
+            background: darkorange;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<h1>History Quiz Game</h1>
+
+<div class="quiz-container">
+    <img id="questionImg" class="question-img" src="" alt="Question Image">
+    <div class="options">
+        <button onclick="checkAnswer(this)">Option 1</button>
+        <button onclick="checkAnswer(this)">Option 2</button>
+        <button onclick="checkAnswer(this)">Option 3</button>
+        <button onclick="checkAnswer(this)">Option 4</button>
+    </div>
+    <div class="message" id="message"></div>
+    <button class="xp-button" id="xpButton" onclick="claimXP()">Claim XP</button>
+</div>
+
+<script>
+    const questions = [
+        {
+            img: "https://upload.wikimedia.org/wikipedia/commons/8/88/Albert_Einstein_Head.jpg",
+            options: ["Isaac Newton", "Albert Einstein", "Galileo Galilei", "Nikola Tesla"],
+            answer: "Albert Einstein"
+        },
+        {
+            img: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Mahatma-Gandhi%2C_studio%2C_1931.jpg",
+            options: ["Jawaharlal Nehru", "Abraham Lincoln", "Mahatma Gandhi", "Nelson Mandela"],
+            answer: "Mahatma Gandhi"
+        },
+        {
+            img: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Burj_Khalifa.jpg",
+            options: ["Shanghai Tower", "Empire State Building", "Burj Khalifa", "Eiffel Tower"],
+            answer: "Burj Khalifa"
+        },
+        {
+            img: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Marie_Curie_c1920.jpg",
+            options: ["Rosalind Franklin", "Marie Curie", "Ada Lovelace", "Jane Goodall"],
+            answer: "Marie Curie"
+        }
+    ];
+
+    let currentQuestion = 0;
+
+    function loadQuestion() {
+        const q = questions[currentQuestion];
+        document.getElementById("questionImg").src = q.img;
+        const buttons = document.querySelectorAll(".options button");
+        buttons.forEach((btn, index) => {
+            btn.textContent = q.options[index];
+            btn.disabled = false;
+            btn.style.background = "#87ceeb";
+            btn.style.color = "black";
+        });
+        document.getElementById("message").textContent = "";
+        document.getElementById("xpButton").style.display = "none";
+    }
+
+    function checkAnswer(button) {
+        const selected = button.textContent;
+        const correct = questions[currentQuestion].answer;
+
+        if (selected === correct) {
+            document.getElementById("message").textContent = "🎉 Congrats! Correct Answer!";
+            document.getElementById("xpButton").style.display = "inline-block";
+            button.style.background = "green";
+            button.style.color = "white";
+        } else {
+            document.getElementById("message").textContent = "❌ Wrong! Try again!";
+            button.style.background = "red";
+            button.style.color = "white";
+        }
+    }
+
+    function claimXP() {
+        alert("🏆 XP Claimed! Keep learning!");
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            document.querySelector(".quiz-container").innerHTML = "<h2>🎖️ You completed all questions! Well done!</h2>";
+        }
+    }
+
+    // Load the first question
+    loadQuestion();
+</script>
+
+</body>
+</html>

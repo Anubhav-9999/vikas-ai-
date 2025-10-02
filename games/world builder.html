@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Builder Puzzle Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 1000px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-title {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.8rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            color: #6e8efb;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        /* Login Screen */
+        .login-form {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .input-group input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            text-align: center;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        /* Buttons */
+        .btn {
+            background: linear-gradient(to right, #6e8efb, #a777e3);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-teacher {
+            background: linear-gradient(to right, #FF9800, #EF6C00);
+        }
+        
+        .btn-student {
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+        }
+        
+        /* Game Screen */
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .world-canvas {
+            width: 500px;
+            height: 400px;
+            background-color: #e8f4f8;
+            border: 3px solid #6e8efb;
+            border-radius: 10px;
+            position: relative;
+            background-image: linear-gradient(#e8f4f8 1px, transparent 1px),
+                              linear-gradient(90deg, #e8f4f8 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .elements-palette {
+            width: 200px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .element-item {
+            padding: 10px;
+            background: linear-gradient(to right, #6e8efb, #a777e3);
+            color: white;
+            border-radius: 8px;
+            cursor: grab;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .element-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .puzzle-info {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        /* Teacher Panel */
+        .teacher-panel {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        
+        .puzzle-editor {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 2px dashed #6e8efb;
+            border-radius: 10px;
+        }
+        
+        .puzzle-editor input, .puzzle-editor textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .element-config {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .element-box {
+            width: 80px;
+            height: 60px;
+            background-color: #e8f4f8;
+            border: 2px solid #6e8efb;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .element-box.selected {
+            border: 3px solid #FF9800;
+            background-color: #fff8e1;
+        }
+        
+        /* Messages */
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            display: none;
+            font-size: 1.1rem;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Score Screen */
+        .score-container {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .score-text {
+            font-size: 2rem;
+            color: #6e8efb;
+            margin-bottom: 20px;
+        }
+        
+        .world-image {
+            max-width: 300px;
+            margin: 20px auto;
+            display: block;
+        }
+        
+        @media (max-width: 900px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            .world-canvas {
+                width: 100%;
+                height: 300px;
+            }
+            
+            .elements-palette {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="game-title">World Builder Puzzle Game</h1>
+        
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="screen active">
+            <p>Welcome to the World Builder Puzzle Game! Are you a teacher or student?</p>
+            <button class="btn btn-teacher" onclick="showScreen('login-screen')">Teacher Login</button>
+            <button class="btn btn-student" onclick="startGame()">Student Play</button>
+            
+            <div class="puzzle-info">
+                <h3>How to Play:</h3>
+                <p>Drag elements from the palette to build the correct world based on the puzzle description!</p>
+            </div>
+        </div>
+        
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen">
+            <h2>Teacher Login</h2>
+            <div class="login-form">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter username">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password">
+                </div>
+                <button class="btn" onclick="login()">Login</button>
+                <button class="btn" onclick="showScreen('welcome-screen')">Back</button>
+            </div>
+            <div id="login-message" class="message error"></div>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="puzzle-info">
+                <h2 id="puzzle-title">Puzzle Title</h2>
+                <p id="puzzle-description">Puzzle description will appear here.</p>
+            </div>
+            
+            <div class="game-area">
+                <div class="world-canvas" id="world-canvas">
+                    <!-- Elements will be placed here -->
+                </div>
+                
+                <div class="elements-palette" id="elements-palette">
+                    <!-- Elements will be added here -->
+                </div>
+            </div>
+            
+            <button class="btn" onclick="checkSolution()">Check Solution</button>
+            <button class="btn" onclick="showScreen('welcome-screen')">Main Menu</button>
+            
+            <div id="game-message" class="message"></div>
+        </div>
+        
+        <!-- Score Screen -->
+        <div id="score-screen" class="screen">
+            <h2>Congratulations!</h2>
+            <div class="score-container">
+                <div class="score-text">You built the world correctly!</div>
+                
+                <svg class="world-image" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" fill="#6e8efb" opacity="0.3" />
+                    <path d="M30,30 Q50,10 70,30 T90,50 T70,70 T50,90 T30,70 T10,50 T30,30" fill="#4CAF50" opacity="0.5" />
+                    <circle cx="35" cy="40" r="5" fill="#FF9800" />
+                    <circle cx="65" cy="60" r="5" fill="#FF9800" />
+                    <path d="M40,70 Q50,60 60,70" stroke="#FF9800" stroke-width="2" fill="none" />
+                </svg>
+                
+                <p>You've successfully completed the puzzle!</p>
+            </div>
+            <button class="btn" onclick="showScreen('welcome-screen')">Play Again</button>
+        </div>
+        
+        <!-- Teacher Panel -->
+        <div id="teacher-panel" class="screen">
+            <h2>Teacher Control Panel</h2>
+            <div class="teacher-panel">
+                <h3>Puzzle Configuration</h3>
+                
+                <div class="puzzle-editor">
+                    <h4>Puzzle Details</h4>
+                    <input type="text" id="puzzle-title-input" placeholder="Puzzle Title" value="Build a Healthy Ecosystem">
+                    <textarea id="puzzle-desc-input" placeholder="Puzzle Description" rows="3">Drag the correct elements to create a balanced ecosystem with plants and animals.</textarea>
+                </div>
+                
+                <div class="puzzle-editor">
+                    <h4>Available Elements</h4>
+                    <div class="element-config" id="elements-config">
+                        <!-- Elements will be added here -->
+                    </div>
+                    <button class="btn" onclick="addNewElement()">Add New Element</button>
+                </div>
+                
+                <div class="puzzle-editor">
+                    <h4>Solution Configuration</h4>
+                    <p>Drag elements to the correct positions for the solution:</p>
+                    <div class="world-canvas" id="solution-canvas" style="height: 200px;">
+                        <!-- Solution elements will be placed here -->
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="savePuzzle()">Save Puzzle</button>
+                <button class="btn" onclick="resetPuzzle()">Reset Puzzle</button>
+            </div>
+            <button class="btn" onclick="showScreen('welcome-screen')">Back to Main Menu</button>
+            <div id="save-message" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        // Game data structure
+        let gameData = {
+            teacherCredentials: {
+                username: "teacher",
+                password: "password123"
+            },
+            currentPuzzle: {
+                title: "Build a Healthy Ecosystem",
+                description: "Drag the correct elements to create a balanced ecosystem with plants and animals.",
+                elements: [
+                    { id: 1, name: "Tree", type: "plant", emoji: "🌳", x: 100, y: 150 },
+                    { id: 2, name: "Rabbit", type: "animal", emoji: "🐇", x: 200, y: 200 },
+                    { id: 3, name: "Sun", type: "environment", emoji: "☀️", x: 400, y: 50 },
+                    { id: 4, name: "Water", type: "environment", emoji: "💧", x: 300, y: 250 },
+                    { id: 5, name: "Flower", type: "plant", emoji: "🌼", x: 150, y: 250 }
+                ],
+                solution: [
+                    { id: 1, x: 100, y: 150 },
+                    { id: 2, x: 200, y: 200 },
+                    { id: 3, x: 400, y: 50 },
+                    { id: 4, x: 300, y: 250 },
+                    { id: 5, x: 150, y: 250 }
+                ]
+            },
+            availableElements: [
+                { id: 1, name: "Tree", type: "plant", emoji: "🌳" },
+                { id: 2, name: "Rabbit", type: "animal", emoji: "🐇" },
+                { id: 3, name: "Sun", type: "environment", emoji: "☀️" },
+                { id: 4, name: "Water", type: "environment", emoji: "💧" },
+                { id: 5, name: "Flower", type: "plant", emoji: "🌼" },
+                { id: 6, name: "Fish", type: "animal", emoji: "🐟" },
+                { id: 7, name: "Mountain", type: "environment", emoji: "⛰️" },
+                { id: 8, name: "House", type: "structure", emoji: "🏠" }
+            ]
+        };
+
+        // Current game state
+        let placedElements = [];
+        let draggedElement = null;
+        let offsetX, offsetY;
+
+        // Initialize the game
+        function initGame() {
+            // Load game data from localStorage if available
+            const savedData = localStorage.getItem('worldBuilderData');
+            if (savedData) {
+                gameData = JSON.parse(savedData);
+            }
+            
+            // Set up the teacher credentials if not already set
+            if (!gameData.teacherCredentials) {
+                gameData.teacherCredentials = {
+                    username: "teacher",
+                    password: "password123"
+                };
+            }
+            
+            // Set up available elements if not already set
+            if (!gameData.availableElements || gameData.availableElements.length === 0) {
+                gameData.availableElements = [
+                    { id: 1, name: "Tree", type: "plant", emoji: "🌳" },
+                    { id: 2, name: "Rabbit", type: "animal", emoji: "🐇" },
+                    { id: 3, name: "Sun", type: "environment", emoji: "☀️" },
+                    { id: 4, name: "Water", type: "environment", emoji: "💧" }
+                ];
+            }
+            
+            // Set up current puzzle if not already set
+            if (!gameData.currentPuzzle) {
+                gameData.currentPuzzle = {
+                    title: "Build a Healthy Ecosystem",
+                    description: "Drag the correct elements to create a balanced ecosystem with plants and animals.",
+                    elements: [
+                        { id: 1, name: "Tree", type: "plant", emoji: "🌳", x: 100, y: 150 },
+                        { id: 2, name: "Rabbit", type: "animal", emoji: "🐇", x: 200, y: 200 }
+                    ],
+                    solution: [
+                        { id: 1, x: 100, y: 150 },
+                        { id: 2, x: 200, y: 200 }
+                    ]
+                };
+            }
+            
+            // Save the initial data
+            localStorage.setItem('worldBuilderData', JSON.stringify(gameData));
+        }
+
+        // Show a specific screen
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show the requested screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // If it's the game screen, set up the game
+            if (screenId === 'game-screen') {
+                setupGame();
+            }
+            
+            // If it's the teacher panel, render the editor
+            if (screenId === 'teacher-panel') {
+                renderPuzzleEditor();
+            }
+        }
+
+        // Start the game
+        function startGame() {
+            placedElements = [];
+            showScreen('game-screen');
+        }
+
+        // Set up the game
+        function setupGame() {
+            const puzzle = gameData.currentPuzzle;
+            
+            // Set puzzle title and description
+            document.getElementById('puzzle-title').textContent = puzzle.title;
+            document.getElementById('puzzle-description').textContent = puzzle.description;
+            
+            // Clear the world canvas
+            const worldCanvas = document.getElementById('world-canvas');
+            worldCanvas.innerHTML = '';
+            
+            // Clear the elements palette
+            const elementsPalette = document.getElementById('elements-palette');
+            elementsPalette.innerHTML = '';
+            
+            // Add elements to the palette
+            gameData.availableElements.forEach(element => {
+                const elementDiv = document.createElement('div');
+                elementDiv.className = 'element-item';
+                elementDiv.textContent = `${element.emoji} ${element.name}`;
+                elementDiv.setAttribute('data-id', element.id);
+                elementDiv.draggable = true;
+                
+                elementDiv.addEventListener('dragstart', function(e) {
+                    draggedElement = element;
+                    e.dataTransfer.setData('text/plain', element.id);
+                });
+                
+                elementsPalette.appendChild(elementDiv);
+            });
+            
+            // Allow dropping on the world canvas
+            worldCanvas.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            
+            worldCanvas.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (!draggedElement) return;
+                
+                const rect = worldCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                placeElement(draggedElement, x, y);
+                draggedElement = null;
+            });
+            
+            // Clear any messages
+            document.getElementById('game-message').style.display = 'none';
+        }
+
+        // Place an element on the world canvas
+        function placeElement(element, x, y) {
+            const worldCanvas = document.getElementById('world-canvas');
+            
+            const elementDiv = document.createElement('div');
+            elementDiv.className = 'element-item';
+            elementDiv.textContent = element.emoji;
+            elementDiv.style.position = 'absolute';
+            elementDiv.style.left = (x - 20) + 'px';
+            elementDiv.style.top = (y - 20) + 'px';
+            elementDiv.style.cursor = 'move';
+            elementDiv.setAttribute('data-id', element.id);
+            
+            // Make elements draggable within the canvas
+            elementDiv.draggable = true;
+            elementDiv.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', element.id);
+                this.style.opacity = '0.5';
+            });
+            
+            elementDiv.addEventListener('dragend', function() {
+                this.style.opacity = '1';
+            });
+            
+            worldCanvas.appendChild(elementDiv);
+            
+            // Store the placed element
+            placedElements.push({
+                id: element.id,
+                x: x,
+                y: y
+            });
+        }
+
+        // Check if the solution is correct
+        function checkSolution() {
+            const solution = gameData.currentPuzzle.solution;
+            const messageElement = document.getElementById('game-message');
+            
+            // Simple check - in a real game, you'd want a more robust solution checking
+            let correct = true;
+            
+            if (placedElements.length !== solution.length) {
+                correct = false;
+            } else {
+                for (let i = 0; i < solution.length; i++) {
+                    const placed = placedElements[i];
+                    const solutionItem = solution[i];
+                    
+                    // Check if the element is roughly in the right position
+                    if (placed.id !== solutionItem.id || 
+                        Math.abs(placed.x - solutionItem.x) > 50 || 
+                        Math.abs(placed.y - solutionItem.y) > 50) {
+                        correct = false;
+                        break;
+                    }
+                }
+            }
+            
+            if (correct) {
+                messageElement.textContent = "Correct! You built the world perfectly!";
+                messageElement.className = "message success";
+                messageElement.style.display = 'block';
+                
+                // Show success screen after a delay
+                setTimeout(() => {
+                    showScreen('score-screen');
+                }, 2000);
+            } else {
+                messageElement.textContent = "Not quite right. Try again!";
+                messageElement.className = "message error";
+                messageElement.style.display = 'block';
+            }
+        }
+
+        // Teacher login
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageElement = document.getElementById('login-message');
+            
+            if (username === gameData.teacherCredentials.username && 
+                password === gameData.teacherCredentials.password) {
+                // Successful login
+                showScreen('teacher-panel');
+            } else {
+                // Failed login
+                messageElement.textContent = "Invalid username or password";
+                messageElement.style.display = 'block';
+            }
+        }
+
+        // Render the puzzle editor
+        function renderPuzzleEditor() {
+            const puzzle = gameData.currentPuzzle;
+            
+            // Set puzzle title and description
+            document.getElementById('puzzle-title-input').value = puzzle.title;
+            document.getElementById('puzzle-desc-input').value = puzzle.description;
+            
+            // Render available elements
+            const elementsContainer = document.getElementById('elements-config');
+            elementsContainer.innerHTML = '';
+            
+            gameData.availableElements.forEach(element => {
+                const elementBox = document.createElement('div');
+                elementBox.className = 'element-box';
+                elementBox.textContent = element.emoji;
+                elementBox.setAttribute('data-id', element.id);
+                elementBox.title = element.name;
+                
+                elementBox.addEventListener('click', function() {
+                    // Select this element for editing
+                    document.querySelectorAll('.element-box').forEach(box => {
+                        box.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                });
+                
+                elementsContainer.appendChild(elementBox);
+            });
+            
+            // Render solution canvas
+            const solutionCanvas = document.getElementById('solution-canvas');
+            solutionCanvas.innerHTML = '';
+            
+            // Add solution elements (simplified for this example)
+            puzzle.solution.forEach(item => {
+                const element = gameData.availableElements.find(e => e.id === item.id);
+                if (element) {
+                    const elementDiv = document.createElement('div');
+                    elementDiv.className = 'element-item';
+                    elementDiv.textContent = element.emoji;
+                    elementDiv.style.position = 'absolute';
+                    elementDiv.style.left = item.x + 'px';
+                    elementDiv.style.top = item.y + 'px';
+                    solutionCanvas.appendChild(elementDiv);
+                }
+            });
+        }
+
+        // Add a new element
+        function addNewElement() {
+            const newId = Math.max(...gameData.availableElements.map(e => e.id), 0) + 1;
+            gameData.availableElements.push({
+                id: newId,
+                name: "New Element",
+                type: "environment",
+                emoji: "⭐"
+            });
+            
+            renderPuzzleEditor();
+        }
+
+        // Save the puzzle
+        function savePuzzle() {
+            // Update puzzle details
+            gameData.currentPuzzle.title = document.getElementById('puzzle-title-input').value;
+            gameData.currentPuzzle.description = document.getElementById('puzzle-desc-input').value;
+            
+            // Save to localStorage
+            localStorage.setItem('worldBuilderData', JSON.stringify(gameData));
+            
+            const messageElement = document.getElementById('save-message');
+            messageElement.textContent = "Puzzle saved successfully!";
+            messageElement.className = "message success";
+            messageElement.style.display = 'block';
+            
+            // Hide message after 2 seconds
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 2000);
+        }
+
+        // Reset the puzzle
+        function resetPuzzle() {
+            if (confirm("Are you sure you want to reset the puzzle to default settings?")) {
+                gameData.currentPuzzle = {
+                    title: "Build a Healthy Ecosystem",
+                    description: "Drag the correct elements to create a balanced ecosystem with plants and animals.",
+                    elements: [
+                        { id: 1, name: "Tree", type: "plant", emoji: "🌳", x: 100, y: 150 },
+                        { id: 2, name: "Rabbit", type: "animal", emoji: "🐇", x: 200, y: 200 }
+                    ],
+                    solution: [
+                        { id: 1, x: 100, y: 150 },
+                        { id: 2, x: 200, y: 200 }
+                    ]
+                };
+                
+                renderPuzzleEditor();
+            }
+        }
+
+        // Initialize the game when the page loads
+        window.onload = function() {
+            initGame();
+        };
+    </script>
+</body>
+</html>

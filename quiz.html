@@ -9,8 +9,14 @@
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
   <style>
-    body { background: linear-gradient(135deg,#e0f7fa,#fce4ec); font-family: 'Inter',sans-serif; }
-    .quiz-card:hover { transform: translateY(-5px) scale(1.02); transition: all .3s ease; }
+    body {
+      background: linear-gradient(135deg,#e0f7fa,#fce4ec);
+      font-family: 'Inter',sans-serif;
+    }
+    .quiz-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      transition: all .3s ease;
+    }
   </style>
 </head>
 <body>
@@ -41,6 +47,8 @@
         <button onclick="showCategory('Math')" class="py-3 px-4 bg-white rounded-lg shadow text-blue-600 font-medium flex flex-col items-center"><i data-feather="plus-circle"></i>Math</button>
         <button onclick="showCategory('Science')" class="py-3 px-4 bg-white rounded-lg shadow text-green-600 font-medium flex flex-col items-center"><i data-feather="plus-circle"></i>Science</button>
         <button onclick="showCategory('English')" class="py-3 px-4 bg-white rounded-lg shadow text-purple-600 font-medium flex flex-col items-center"><i data-feather="plus-circle"></i>English</button>
+        <button onclick="showCategory('SolarSystem')" class="py-3 px-4 bg-white rounded-lg shadow text-yellow-600 font-medium flex flex-col items-center"><i data-feather="sun"></i>Solar System</button>
+        <button onclick="showCategory('OzoneLayer')" class="py-3 px-4 bg-white rounded-lg shadow text-teal-600 font-medium flex flex-col items-center"><i data-feather="cloud"></i>Ozone Layer</button>
       </div>
     </div>
 
@@ -70,21 +78,72 @@
 </div>
 
 <script>
-AOS.init(); feather.replace();
+AOS.init();
+feather.replace();
 
-// Questions DB
+// Updated Questions DB with 10 Math Questions
 const questionBank = {
   Math: [
-    {q:"What is 25×4?", opts:["50","75","100","125"], ans:"100"},
-    {q:"12÷3 = ?", opts:["2","3","4","6"], ans:"4"}
+    {q:"1. What is 12 + 15?", opts:["25","27","30","35"], ans:"27"},
+    {q:"2. What is 7 × 8?", opts:["54","56","58","64"], ans:"56"},
+    {q:"3. What is the square root of 144?", opts:["10","11","12","14"], ans:"12"},
+    {q:"4. If x + 5 = 12, what is x?", opts:["5","6","7","8"], ans:"7"},
+    {q:"5. What is 45 ÷ 5?", opts:["8","9","10","11"], ans:"9"},
+    {q:"6. What is 3² + 4²?", opts:["12","16","25","36"], ans:"25"},
+    {q:"7. Which is a prime number?", opts:["21","29","35","39"], ans:"29"},
+    {q:"8. What is 15% of 200?", opts:["20","25","30","35"], ans:"30"},
+    {q:"9. What is the value of π (approx)?", opts:["3.12","3.14","3.16","3.18"], ans:"3.14"},
+    {q:"10. What is 2³ × 3²?", opts:["24","32","36","72"], ans:"72"}
   ],
   Science: [
-    {q:"Largest planet?", opts:["Earth","Mars","Jupiter","Saturn"], ans:"Jupiter"},
-    {q:"Gas for breathing?", opts:["CO2","O2","H2","N2"], ans:"O2"}
+    {q:"1. Largest planet?", opts:["Earth","Mars","Jupiter","Saturn"], ans:"Jupiter"},
+    {q:"2. Gas for breathing?", opts:["CO2","O2","H2","N2"], ans:"O2"},
+    {q:"3. What is H2O?", opts:["Oxygen","Water","Hydrogen","Helium"], ans:"Water"},
+    {q:"4. Force = ?", opts:["Mass/Acceleration","Mass×Acceleration","Mass+Acceleration","Mass-Acceleration"], ans:"Mass×Acceleration"},
+    {q:"5. Light speed approx?", opts:["3×10^8 m/s","3×10^6 m/s","3×10^7 m/s","3×10^5 m/s"], ans:"3×10^8 m/s"},
+    {q:"6. What is DNA?", opts:["Protein","Carbohydrate","Genetic material","Lipid"], ans:"Genetic material"},
+    {q:"7. The Earth revolves around?", opts:["Moon","Sun","Mars","Venus"], ans:"Sun"},
+    {q:"8. Which gas causes greenhouse effect?", opts:["CO2","O2","N2","H2"], ans:"CO2"},
+    {q:"9. What planet is closest to the Sun?", opts:["Venus","Mercury","Earth","Mars"], ans:"Mercury"},
+    {q:"10. Energy unit?", opts:["Joule","Newton","Watt","Volt"], ans:"Joule"}
   ],
   English: [
-    {q:"Synonym of 'Happy'?", opts:["Sad","Joyful","Angry","Fast"], ans:"Joyful"},
-    {q:"Which is verb?", opts:["Run","Blue","Happy","Book"], ans:"Run"}
+    {q:"1. Synonym of 'Happy'?", opts:["Sad","Joyful","Angry","Fast"], ans:"Joyful"},
+    {q:"2. Antonym of 'Fast'?", opts:["Quick","Slow","Rapid","Speedy"], ans:"Slow"},
+    {q:"3. Which is a verb?", opts:["Run","Blue","Happy","Book"], ans:"Run"},
+    {q:"4. Which is a noun?", opts:["Run","Book","Happy","Quick"], ans:"Book"},
+    {q:"5. Plural of 'Child'?", opts:["Childs","Childes","Children","Child"], ans:"Children"},
+    {q:"6. Past tense of 'Go'?", opts:["Went","Gone","Goed","Go"], ans:"Went"},
+    {q:"7. Correct article for 'Apple'?", opts:["An","A","The","No article"], ans:"An"},
+    {q:"8. Opposite of 'Hot'?", opts:["Warm","Cold","Cool","Chill"], ans:"Cold"},
+    {q:"9. Synonym of 'Smart'?", opts:["Intelligent","Dull","Slow","Lazy"], ans:"Intelligent"},
+    {q:"10. Correct spelling?", opts:["Recieve","Receive","Recive","Receve"], ans:"Receive"}
+  ],
+  SolarSystem: [
+    {q:"Which planet is known as the Red Planet?", opts:["Earth","Mars","Venus","Jupiter"], ans:"Mars"},
+    {q:"Which planet has the most moons?", opts:["Saturn","Jupiter","Neptune","Uranus"], ans:"Saturn"},
+    {q:"What is the largest planet in our solar system?", opts:["Earth","Saturn","Jupiter","Neptune"], ans:"Jupiter"},
+    {q:"Which planet is closest to the Sun?", opts:["Venus","Mercury","Earth","Mars"], ans:"Mercury"},
+    {q:"Which planet is called the 'Blue Planet'?", opts:["Earth","Neptune","Uranus","Saturn"], ans:"Earth"}
+  ],
+  OzoneLayer: [
+    {q:"What does the ozone layer protect us from?", opts:["Ultraviolet radiation","Visible light","Infrared rays","Radio waves"], ans:"Ultraviolet radiation"},
+    {q:"Which chemical is the main cause of ozone depletion?", opts:["CO2","CFCs","Methane","Oxygen"], ans:"CFCs"},
+    {q:"In which layer of the atmosphere is the ozone layer found?", opts:["Troposphere","Stratosphere","Mesosphere","Exosphere"], ans:"Stratosphere"},
+    {q:"What is the ozone molecule made of?", opts:["O2","O3","CO2","N2"], ans:"O3"},
+    {q:"Which international agreement aimed to reduce CFCs?", opts:["Kyoto Protocol","Montreal Protocol","Paris Agreement","Rio Summit"], ans:"Montreal Protocol"}
+  ],
+AI_IT: [
+    {q:"1. AI stands for?", opts:["Artificial Intelligence","Automatic Internet","Automated Integration","Artificial Input"], ans:"Artificial Intelligence"},
+    {q:"2. Machine Learning is a subset of?", opts:["AI","Robotics","Big Data","Cloud Computing"], ans:"AI"},
+    {q:"3. Which language is popular for AI?", opts:["Python","C","HTML","JavaScript"], ans:"Python"},
+    {q:"4. ChatGPT is an example of?", opts:["NLP","CV","ML","Database"], ans:"NLP"},
+    {q:"5. AI can be used for?", opts:["Prediction","Cooking","Painting","Building"], ans:"Prediction"},
+    {q:"6. Turing Test evaluates?", opts:["Machine Intelligence","Speed","Memory","Energy"], ans:"Machine Intelligence"},
+    {q:"7. Deep Learning uses?", opts:["Neural Networks","Spreadsheets","Databases","Logic Gates"], ans:"Neural Networks"},
+    {q:"8. AI ethics relates to?", opts:["Responsible AI","Fast AI","Cheap AI","Smart AI"], ans:"Responsible AI"},
+    {q:"9. Supervised Learning needs?", opts:["Labeled Data","Unlabeled Data","Random Data","No Data"], ans:"Labeled Data"},
+    {q:"10. Example of AI assistant?", opts:["Siri","Chrome","Word","Excel"], ans:"Siri"}
   ]
 };
 
@@ -154,7 +213,6 @@ function startTimer(){
   },1000);
 }
 
-// ✅ Single Clean endQuiz()
 function endQuiz(){
   clearInterval(timer);
   document.getElementById("quiz-engine").classList.add("hidden");
@@ -167,16 +225,13 @@ function endQuiz(){
   document.getElementById("final-score").textContent = `${score}/${totalQ}`;
   document.getElementById("earned-rp").textContent = `🏆 Rank Points Earned: ${rpEarned} RP`;
 
-  // Save Attempt
   saveQuizAttempt(currentQuiz, score, totalQ, rpEarned);
 
-  // Update Student Leaderboard Data
   if(typeof updateStudentRP === "function"){
     updateStudentRP(rpEarned);
   }
 }
 
-// Save Attempts
 function saveQuizAttempt(quiz, score, totalQ, rp){
   let attempts=JSON.parse(localStorage.getItem("quizAttempts")||"[]");
   attempts.push({quiz,score,totalQ,rp,ts:new Date().toLocaleString()});

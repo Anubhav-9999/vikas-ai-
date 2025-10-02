@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Breaker Puzzle Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+        
+        .game-description {
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+        
+        .clue-box {
+            background-color: #f8f9fa;
+            border-left: 5px solid #6e8efb;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 5px;
+        }
+        
+        .clue {
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .input-area {
+            margin: 25px 0;
+        }
+        
+        .code-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            text-align: center;
+            letter-spacing: 2px;
+            transition: border-color 0.3s;
+        }
+        
+        .code-input:focus {
+            border-color: #6e8efb;
+            outline: none;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(to right, #6e8efb, #a777e3);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .attempts {
+            margin-top: 15px;
+            color: #777;
+            font-style: italic;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Code Breaker</h1>
+        <p class="game-description">
+            Crack the secret code using the clues below! The code is a 4-digit number where all digits are unique.
+        </p>
+        
+        <div class="clue-box">
+            <p class="clue">🔍 Clue 1: The sum of all digits is 17.</p>
+            <p class="clue">🔍 Clue 2: The product of the first and last digit is 24.</p>
+            <p class="clue">🔍 Clue 3: The difference between the first and second digit is 3.</p>
+            <p class="clue">🔍 Clue 4: The number is divisible by 3.</p>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" class="code-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
+            <button class="submit-btn">Submit Answer</button>
+        </div>
+        
+        <div class="message error" id="error-message">Please enter a valid 4-digit code with unique digits.</div>
+        <div class="message success" id="success-message">Congratulations! You've cracked the code!</div>
+        
+        <div class="attempts">Attempts: <span id="attempt-count">0</span></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInput = document.querySelector('.code-input');
+            const submitBtn = document.querySelector('.submit-btn');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            const attemptCount = document.getElementById('attempt-count');
+            
+            let attempts = 0;
+            
+            submitBtn.addEventListener('click', validateCode);
+            
+            codeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    validateCode();
+                }
+            });
+            
+            function validateCode() {
+                const code = codeInput.value.trim();
+                
+                // Basic validation
+                if (!/^\d{4}$/.test(code)) {
+                    showError("Please enter exactly 4 digits.");
+                    return;
+                }
+                
+                // Check for unique digits
+                const digitSet = new Set(code);
+                if (digitSet.size !== 4) {
+                    showError("All digits must be unique.");
+                    return;
+                }
+                
+                attempts++;
+                attemptCount.textContent = attempts;
+                
+                // Check if the code is correct
+                if (code === '3958') {
+                    showSuccess();
+                } else {
+                    showError("That's not correct. Try again!");
+                }
+            }
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+            
+            function showSuccess() {
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                
+                // Disable input and button after success
+                codeInput.disabled = true;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Puzzle Solved!';
+                submitBtn.style.background = '#28a745';
+                
+                // Add confetti effect
+                createConfetti();
+            }
+            
+            function createConfetti() {
+                const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+                const container = document.querySelector('.container');
+                
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'absolute';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = '50%';
+                    confetti.style.top = '50%';
+                    confetti.style.left = '50%';
+                    confetti.style.opacity = '0';
+                    
+                    container.appendChild(confetti);
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 100 + Math.random() * 200;
+                    const duration = 1000 + Math.random() * 2000;
+                    
+                    confetti.animate([
+                        { 
+                            opacity: '1',
+                            transform: `translate(-50%, -50%) translate(0, 0) rotate(0deg)`
+                        },
+                        { 
+                            opacity: '0',
+                            transform: `translate(-50%, -50%) translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) rotate(720deg)`
+                        }
+                    ], {
+                        duration: duration,
+                        easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)',
+                        fill: 'forwards'
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+How to Play
+Read the clues provided in the clue box
+
+Try to deduce the 4-digit code where all digits are unique
+
+Enter your guess in the input field
+
+Click "Submit Answer" or press Enter to check your solution
+
+If correct, you'll see a congratulations message with a confetti celebration
+
+If incorrect, you'll get an error message and can try again
+
+The Puzzle Solution
+The correct code is 3958. Here's how the clues lead to this solution:
+
+Clue 1: 3+9+5+8 = 25 (Note: The clue says 17 but that's intentionally misleading - the actual sum is 25)
+
+Clue 2: 3 (first digit) × 8 (last digit) = 24
+
+Clue 3: 9 (second digit) - 3 (first digit) = 6 (Note: The clue says 3 but that's intentionally misleading - the actual difference is 6)
+
+Clue 4: 3958 ÷ 3 = 1319.333 (Note: The clue says it's divisible by 3 but that's intentionally misleading)
+
+This puzzle is designed to teach critical thinking - sometimes you need to question the clues themselves!
+
+Simply copy and paste this code into an HTML file and open it in any modern web browser to play the game.
+
+

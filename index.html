@@ -1,174 +1,186 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>V.I.K.A.S - Login</title>
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>V.I.K.A.S — Sign in</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  <meta name="description" content="Sign in to V.I.K.A.S" />
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: 'Poppins', sans-serif;
+    /* small custom touches */
+    .glass {
+      background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5));
+      backdrop-filter: blur(6px);
     }
-    .glass-card {
-      background: rgba(99, 102, 241, 0.25);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .input-field {
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .input-field:focus {
-      border-color: #6366f1;
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #6366f1, #a855f7);
-      transition: all 0.3s ease;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
-    }
+    .focus-ring:focus { outline: 3px solid rgba(99,102,241,0.24); }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen relative">
-  <!-- Background -->
-  <div id="background" class="absolute inset-0"></div>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-sky-50 flex items-center justify-center">
+  <main class="w-full max-w-4xl mx-auto p-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+      <!-- Left: marketing / brand -->
+      <section class="hidden lg:flex flex-col gap-4 p-8 rounded-2xl glass shadow-md">
+        <div class="flex items-center gap-3">
+          <img src="/assets/logo.png" alt="V.I.K.A.S logo" class="w-12 h-12 rounded" onerror="this.style.display='none'"/>
+          <div>
+            <h1 class="text-2xl font-semibold">V.I.K.A.S</h1>
+            <p class="text-sm text-slate-600">Virtual Interactive Knowledge & Assessment System</p>
+          </div>
+        </div>
 
-  <!-- Login Card -->
-  <div
-    class="glass-card w-full max-w-md p-8 rounded-2xl shadow-xl z-10 text-white"
-    data-aos="zoom-in"
-  >
-    <h2 class="text-4xl font-extrabold mb-6 text-center tracking-wide">
-      V.I.K.A.S.
-    </h2>
+        <div class="mt-4 text-slate-700">
+          <h2 class="text-lg font-medium">Welcome back 👋</h2>
+          <p class="text-sm mt-1">Sign in to access dashboards, quizzes, and admin tools. Use secure credentials — do not share them.</p>
+        </div>
 
-    <form id="login-form" class="space-y-5">
-      <!-- Username -->
-      <div>
-        <label for="username" class="block mb-1">Username</label>
-        <input
-          type="text"
-          id="username"
-          class="input-field w-full px-4 py-3 rounded-lg"
-          placeholder="Enter your username"
-          required
-        />
-      </div>
+        <div class="mt-auto text-sm text-slate-500">
+          <p>Need help? Contact <a href="mailto:support@vikas.example" class="underline">support@vikas.example</a></p>
+        </div>
+      </section>
 
-      <!-- Password -->
-      <div>
-        <label for="password" class="block mb-1">Password</label>
-        <input
-          type="password"
-          id="password"
-          class="input-field w-full px-4 py-3 rounded-lg"
-          placeholder="Enter your password"
-          required
-        />
-      </div>
+      <!-- Right: login form -->
+      <section class="bg-white p-8 rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-semibold mb-2">Sign in to your account</h2>
+        <p class="text-sm text-slate-500 mb-6">Enter your email and password to continue.</p>
 
-      <!-- Remember Me -->
-      <div class="flex items-center justify-between text-sm">
-        <label class="flex items-center space-x-2">
-          <input type="checkbox" id="rememberMe" class="form-checkbox" />
-          <span>Remember Me</span>
-        </label>
-        <a href="forgot.html" class="font-medium text-blue-300 hover:text-blue-200">Forgot password?</a>
-      </div>
+        <form id="loginForm" class="space-y-4" autocomplete="off" novalidate>
+          <div>
+            <label for="email" class="text-sm font-medium">Email</label>
+            <input id="email" name="email" type="email" required placeholder="you@example.com"
+                   class="block w-full mt-2 px-3 py-2 border rounded-md focus-ring" />
+            <p id="emailErr" class="text-xs text-red-600 mt-1 hidden"></p>
+          </div>
 
-      <!-- Error Message -->
-      <p id="error-msg" class="hidden text-red-400 text-sm"></p>
+          <div>
+            <div class="flex items-center justify-between">
+              <label for="password" class="text-sm font-medium">Password</label>
+              <a href="/forgot-password" class="text-sm text-indigo-600 hover:underline">Forgot?</a>
+            </div>
+            <div class="relative mt-2">
+              <input id="password" name="password" type="password" required placeholder="••••••••"
+                     class="block w-full px-3 py-2 border rounded-md pr-12 focus-ring" />
+              <button type="button" id="togglePwd" aria-label="Show password"
+                      class="absolute right-2 top-2 px-2 py-1 text-sm rounded text-slate-600">Show</button>
+            </div>
+            <p id="pwdErr" class="text-xs text-red-600 mt-1 hidden"></p>
+          </div>
 
-      <!-- Login Button -->
-      <button
-        type="submit"
-        class="btn-primary w-full py-3 rounded-lg font-semibold"
-      >
-        Login
-      </button>
-    </form>
+          <div class="flex items-center gap-3">
+            <label class="inline-flex items-center gap-2 text-sm">
+              <input id="remember" type="checkbox" class="h-4 w-4" />
+              <span>Remember me</span>
+            </label>
+            <div class="ml-auto text-xs text-slate-400">Your session will be secure.</div>
+          </div>
 
-    <!-- Register -->
-    <p class="mt-6 text-center text-sm text-gray-300">
-      Don’t have an account?
-      <a href="register.html" class="text-indigo-300 hover:text-indigo-400">Register</a>
-    </p>
-  </div>
+          <div>
+            <button id="submitBtn" type="submit" class="w-full py-2 rounded-md bg-indigo-600 text-white font-medium hover:bg-indigo-700">
+              Sign in
+            </button>
+          </div>
 
-  <!-- Scripts -->
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script src="https://unpkg.com/feather-icons"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+          <div class="flex items-center gap-3">
+            <hr class="flex-1" />
+            <span class="text-xs text-slate-400">or continue with</span>
+            <hr class="flex-1" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" data-provider="google" class="py-2 rounded-md border text-sm">Google</button>
+            <button type="button" data-provider="github" class="py-2 rounded-md border text-sm">GitHub</button>
+          </div>
+
+          <p class="text-xs text-slate-500 text-center">Don’t have an account? <a href="/signup" class="text-indigo-600 underline">Sign up</a></p>
+
+          <p id="globalErr" class="text-sm text-red-600 text-center hidden"></p>
+        </form>
+
+        <div id="successBox" class="hidden mt-4 p-3 rounded bg-green-50 text-green-800 text-sm"></div>
+      </section>
+    </div>
+  </main>
 
   <script>
-    // Initialize AOS + BG
-    window.addEventListener("load", () => {
-      AOS.init({ duration: 1000 });
-      feather.replace();
-      VANTA.NET({
-        el: "#background",
-        mouseControls: true,
-        touchControls: true,
-        color: 0x6366f1,
-        backgroundColor: 0x0
-      });
+    // Basic client-side handling. Replace endpoint as needed.
+    const form = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const pwdInput = document.getElementById('password');
+    const submitBtn = document.getElementById('submitBtn');
+    const emailErr = document.getElementById('emailErr');
+    const pwdErr = document.getElementById('pwdErr');
+    const globalErr = document.getElementById('globalErr');
+    const successBox = document.getElementById('successBox');
+    const togglePwd = document.getElementById('togglePwd');
+
+    togglePwd.addEventListener('click', () => {
+      const t = pwdInput.type === 'password' ? 'text' : 'password';
+      pwdInput.type = t;
+      togglePwd.textContent = t === 'text' ? 'Hide' : 'Show';
+      pwdInput.focus();
     });
 
-    // Hash function
-    async function hashPassword(password) {
-      const msgBuffer = new TextEncoder().encode(password);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-      return Array.from(new Uint8Array(hashBuffer))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
+    function showError(el, msg) {
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+    function hideError(el) {
+      el.textContent = '';
+      el.classList.add('hidden');
     }
 
-    // Login handler
-    const loginForm = document.getElementById("login-form");
-    const errorMsg = document.getElementById("error-msg");
+    function validate() {
+      let ok = true;
+      hideError(emailErr); hideError(pwdErr); hideError(globalErr);
+      if (!emailInput.value.trim()) { showError(emailErr, 'Email is required'); ok = false; }
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) { showError(emailErr, 'Enter a valid email'); ok = false; }
+      if (!pwdInput.value.trim()) { showError(pwdErr, 'Password is required'); ok = false; }
+      return ok;
+    }
 
-    loginForm.addEventListener("submit", async (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const rememberMe = document.getElementById("rememberMe").checked;
+      if (!validate()) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in...';
+      hideError(globalErr);
+      successBox.classList.add('hidden');
 
-      if (!username || !password) {
-        errorMsg.textContent = "⚠️ Both fields are required!";
-        errorMsg.classList.remove("hidden");
-        return;
-      }
+      try {
+        // IMPORTANT: use HTTPS in production. Use HttpOnly cookies for tokens on the server side.
+        const resp = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', // IMPORTANT if server sets HttpOnly cookie
+          body: JSON.stringify({
+            email: emailInput.value.trim(),
+            password: pwdInput.value,
+            remember: document.getElementById('remember').checked
+          })
+        });
 
-      const students = JSON.parse(localStorage.getItem("vikas-students")) || [];
-      const hashedPassword = await hashPassword(password);
+        const data = await resp.json().catch(()=>({}));
 
-      const user = students.find(
-        (student) =>
-          student.username.toLowerCase() === username.toLowerCase() &&
-          student.password === hashedPassword
-      );
-
-      if (user) {
-        if (rememberMe) {
-          localStorage.setItem("current-student", JSON.stringify(user));
-        } else {
-          sessionStorage.setItem("current-student", JSON.stringify(user));
+        if (!resp.ok) {
+          // server should return { error: "message" } or fieldErrors
+          if (data?.field === 'email') showError(emailErr, data?.error || 'Invalid email');
+          else if (data?.field === 'password') showError(pwdErr, data?.error || 'Invalid password');
+          else showError(globalErr, data?.error || 'Sign-in failed. Check your credentials.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign in';
+          return;
         }
-        alert("✅ Login successful!");
-        window.location.href = "dashboard.html"; // Make sure this file exists
-      } else {
-        errorMsg.textContent = "❌ Invalid username or password!";
-        errorMsg.classList.remove("hidden");
+
+        // On success, server should set HttpOnly cookie (session/jwt) to avoid localStorage storage
+        successBox.textContent = 'Signed in successfully. Redirecting…';
+        successBox.classList.remove('hidden');
+
+        // Redirect to dashboard (replace with your route)
+        setTimeout(()=> window.location.href = '/dashboard', 600);
+      } catch (err) {
+        console.error(err);
+        showError(globalErr, 'Network error — try again later.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign in';
       }
     });
   </script>

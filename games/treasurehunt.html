@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Treasure Hunt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 800px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-title {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.8rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            color: #6e8efb;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        /* Login Screen */
+        .login-form {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .input-group input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            text-align: center;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        /* Buttons */
+        .btn {
+            background: linear-gradient(to right, #6e8efb, #a777e3);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-teacher {
+            background: linear-gradient(to right, #FF9800, #EF6C00);
+        }
+        
+        .btn-student {
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+        }
+        
+        /* Game Screen */
+        .question-container {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .question-number {
+            font-size: 1.2rem;
+            color: #6e8efb;
+            margin-bottom: 10px;
+        }
+        
+        .question-text {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .option-btn {
+            background: linear-gradient(to right, #6e8efb, #a777e3);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+        
+        .option-btn:hover {
+            transform: scale(1.03);
+        }
+        
+        /* Score Screen */
+        .score-container {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .score-text {
+            font-size: 2rem;
+            color: #6e8efb;
+            margin-bottom: 20px;
+        }
+        
+        .treasure-image {
+            max-width: 200px;
+            margin: 20px auto;
+            display: block;
+        }
+        
+        /* Teacher Panel */
+        .teacher-panel {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        
+        .question-editor {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 2px dashed #6e8efb;
+            border-radius: 10px;
+        }
+        
+        .question-editor input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        /* Messages */
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            display: none;
+            font-size: 1.1rem;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Treasure chest animation */
+        .treasure-chest {
+            width: 200px;
+            height: 150px;
+            background-color: #d4a017;
+            border: 5px solid #b38714;
+            border-radius: 10px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .treasure-chest:before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background-color: #d4a017;
+            border: 5px solid #b38714;
+            border-radius: 50%;
+        }
+        
+        .treasure-chest:after {
+            content: '💰';
+            font-size: 40px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        @media (max-width: 600px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-title {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="game-title">Knowledge Treasure Hunt</h1>
+        
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="screen active">
+            <p>Welcome to the Knowledge Treasure Hunt! Are you a teacher or student?</p>
+            <button class="btn btn-teacher" onclick="showScreen('login-screen')">Teacher Login</button>
+            <button class="btn btn-student" onclick="startGame()">Student Play</button>
+            
+            <div class="treasure-chest"></div>
+            
+            <p>Find the treasure by answering questions correctly!</p>
+        </div>
+        
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen">
+            <h2>Teacher Login</h2>
+            <div class="login-form">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter username">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password">
+                </div>
+                <button class="btn" onclick="login()">Login</button>
+                <button class="btn" onclick="showScreen('welcome-screen')">Back</button>
+            </div>
+            <div id="login-message" class="message error"></div>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="question-number">Question <span id="current-question">1</span> of <span id="total-questions">5</span></div>
+            <div class="question-container">
+                <div class="question-text" id="question-text">What is 2 + 2?</div>
+                <div class="options-container" id="options-container">
+                    <!-- Options will be added by JavaScript -->
+                </div>
+            </div>
+            <div id="game-message" class="message"></div>
+            <button class="btn" onclick="showScreen('welcome-screen')">Main Menu</button>
+        </div>
+        
+        <!-- Score Screen -->
+        <div id="score-screen" class="screen">
+            <h2>Congratulations!</h2>
+            <div class="score-container">
+                <div class="score-text">You found the treasure!</div>
+                <div class="score-text">Score: <span id="final-score">0</span>/<span id="max-score">0</span></div>
+                
+                <div class="treasure-chest"></div>
+                
+                <p>You've successfully completed the treasure hunt!</p>
+            </div>
+            <button class="btn" onclick="showScreen('welcome-screen')">Play Again</button>
+        </div>
+        
+        <!-- Teacher Panel -->
+        <div id="teacher-panel" class="screen">
+            <h2>Teacher Control Panel</h2>
+            <div class="teacher-panel">
+                <h3>Game Questions</h3>
+                <div id="questions-container">
+                    <!-- Questions will be added by JavaScript -->
+                </div>
+                <button class="btn" onclick="addNewQuestion()">Add Question</button>
+                <button class="btn" onclick="saveQuestions()">Save Questions</button>
+            </div>
+            <button class="btn" onclick="showScreen('welcome-screen')">Back to Main Menu</button>
+            <div id="save-message" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        // Game data structure
+        let gameData = {
+            teacherCredentials: {
+                username: "teacher",
+                password: "password123"
+            },
+            questions: [
+                {
+                    question: "What is 5 + 3?",
+                    options: ["7", "8", "9", "10"],
+                    correctAnswer: 1
+                },
+                {
+                    question: "Which animal says 'meow'?",
+                    options: ["Dog", "Cow", "Cat", "Duck"],
+                    correctAnswer: 2
+                },
+                {
+                    question: "What color do you get when you mix blue and yellow?",
+                    options: ["Green", "Orange", "Purple", "Brown"],
+                    correctAnswer: 0
+                },
+                {
+                    question: "How many sides does a triangle have?",
+                    options: ["3", "4", "5", "6"],
+                    correctAnswer: 0
+                },
+                {
+                    question: "Which month comes after April?",
+                    options: ["February", "March", "May", "June"],
+                    correctAnswer: 2
+                }
+            ]
+        };
+
+        // Current game state
+        let currentQuestion = 0;
+        let score = 0;
+
+        // Initialize the game
+        function initGame() {
+            // Load game data from localStorage if available
+            const savedData = localStorage.getItem('treasureHuntData');
+            if (savedData) {
+                gameData = JSON.parse(savedData);
+            }
+            
+            // Set up the teacher credentials if not already set
+            if (!gameData.teacherCredentials) {
+                gameData.teacherCredentials = {
+                    username: "teacher",
+                    password: "password123"
+                };
+            }
+            
+            // Set up questions if not already set
+            if (!gameData.questions || gameData.questions.length === 0) {
+                gameData.questions = [
+                    {
+                        question: "What is 5 + 3?",
+                        options: ["7", "8", "9", "10"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "Which animal says 'meow'?",
+                        options: ["Dog", "Cow", "Cat", "Duck"],
+                        correctAnswer: 2
+                    }
+                ];
+            }
+            
+            // Save the initial data
+            localStorage.setItem('treasureHuntData', JSON.stringify(gameData));
+        }
+
+        // Show a specific screen
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show the requested screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // If it's the teacher panel, render the questions
+            if (screenId === 'teacher-panel') {
+                renderQuestionEditors();
+            }
+        }
+
+        // Start the game
+        function startGame() {
+            currentQuestion = 0;
+            score = 0;
+            loadQuestion();
+            showScreen('game-screen');
+        }
+
+        // Load the current question
+        function loadQuestion() {
+            const question = gameData.questions[currentQuestion];
+            
+            // Update question text
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('current-question').textContent = currentQuestion + 1;
+            document.getElementById('total-questions').textContent = gameData.questions.length;
+            
+            // Clear options container
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            // Add options
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+            
+            // Clear any messages
+            document.getElementById('game-message').style.display = 'none';
+        }
+
+        // Check if the answer is correct
+        function checkAnswer(selectedIndex) {
+            const question = gameData.questions[currentQuestion];
+            const messageElement = document.getElementById('game-message');
+            
+            if (selectedIndex === question.correctAnswer) {
+                // Correct answer
+                score++;
+                messageElement.textContent = "Correct! Well done!";
+                messageElement.className = "message success";
+            } else {
+                // Incorrect answer
+                messageElement.textContent = `Incorrect. The right answer is: ${question.options[question.correctAnswer]}`;
+                messageElement.className = "message error";
+            }
+            
+            messageElement.style.display = 'block';
+            
+            // Move to next question after a delay
+            setTimeout(() => {
+                currentQuestion++;
+                
+                if (currentQuestion < gameData.questions.length) {
+                    loadQuestion();
+                } else {
+                    // Game over
+                    showScoreScreen();
+                }
+            }, 2000);
+        }
+
+        // Show the score screen
+        function showScoreScreen() {
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('max-score').textContent = gameData.questions.length;
+            showScreen('score-screen');
+        }
+
+        // Teacher login
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageElement = document.getElementById('login-message');
+            
+            if (username === gameData.teacherCredentials.username && 
+                password === gameData.teacherCredentials.password) {
+                // Successful login
+                showScreen('teacher-panel');
+            } else {
+                // Failed login
+                messageElement.textContent = "Invalid username or password";
+                messageElement.style.display = 'block';
+            }
+        }
+
+        // Render question editors in teacher panel
+        function renderQuestionEditors() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+            
+            gameData.questions.forEach((question, index) => {
+                const editor = document.createElement('div');
+                editor.className = 'question-editor';
+                editor.innerHTML = `
+                    <h4>Question ${index + 1}</h4>
+                    <input type="text" value="${question.question}" placeholder="Question text" 
+                        onchange="updateQuestion(${index}, 'question', this.value)">
+                    ${question.options.map((option, optIndex) => `
+                        <input type="text" value="${option}" placeholder="Option ${optIndex + 1}" 
+                            onchange="updateQuestionOption(${index}, ${optIndex}, this.value)">
+                    `).join('')}
+                    <div>
+                        <label>Correct Answer: </label>
+                        <select onchange="updateCorrectAnswer(${index}, this.value)">
+                            ${question.options.map((option, optIndex) => `
+                                <option value="${optIndex}" ${question.correctAnswer === optIndex ? 'selected' : ''}>
+                                    Option ${optIndex + 1}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <button class="btn" onclick="removeQuestion(${index})">Remove Question</button>
+                `;
+                container.appendChild(editor);
+            });
+        }
+
+        // Update a question
+        function updateQuestion(index, property, value) {
+            gameData.questions[index][property] = value;
+        }
+
+        // Update a question option
+        function updateQuestionOption(questionIndex, optionIndex, value) {
+            gameData.questions[questionIndex].options[optionIndex] = value;
+        }
+
+        // Update the correct answer
+        function updateCorrectAnswer(index, value) {
+            gameData.questions[index].correctAnswer = parseInt(value);
+        }
+
+        // Add a new question
+        function addNewQuestion() {
+            gameData.questions.push({
+                question: "New question",
+                options: ["Option 1", "Option 2", "Option 3", "Option 4"],
+                correctAnswer: 0
+            });
+            renderQuestionEditors();
+        }
+
+        // Remove a question
+        function removeQuestion(index) {
+            gameData.questions.splice(index, 1);
+            renderQuestionEditors();
+        }
+
+        // Save questions to localStorage
+        function saveQuestions() {
+            localStorage.setItem('treasureHuntData', JSON.stringify(gameData));
+            
+            const messageElement = document.getElementById('save-message');
+            messageElement.textContent = "Questions saved successfully!";
+            messageElement.className = "message success";
+            messageElement.style.display = 'block';
+            
+            // Hide message after 2 seconds
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 2000);
+        }
+
+        // Initialize the game when the page loads
+        window.onload = function() {
+            initGame();
+        };
+    </script>
+</body>
+</html>

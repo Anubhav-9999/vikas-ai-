@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geography Explorer Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #0f4c29, #306b43, #243e2a);
+            color: #fff;
+            min-height: 100vh;
+        }
+        .geography-card {
+            background: rgba(15, 42, 23, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transition: width 0.5s ease;
+        }
+        .btn-geography {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-geography:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        .correct-answer {
+            animation: pulse 0.5s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .level-up {
+            animation: glow 1s infinite alternate;
+        }
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #3b82f6; }
+            to { box-shadow: 0 0 20px #8b5cf6; }
+        }
+        .question-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <div id="app" class="w-full max-w-2xl geography-card p-8 rounded-xl">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                    Geography Explorer
+                </h1>
+                <p class="text-gray-300">Test your world knowledge</p>
+            </div>
+            <div class="text-right">
+                <div class="flex items-center space-x-2">
+                    <i data-feather="star" class="text-yellow-400"></i>
+                    <span id="level" class="font-bold">1</span>
+                </div>
+                <div class="flex items-center space-x-2 mt-1">
+                    <i data-feather="zap" class="text-blue-400"></i>
+                    <span id="xp">0</span>
+                    <span>/</span>
+                    <span id="next-level-xp">100</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-bar w-full mb-6">
+            <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+        </div>
+
+        <div id="question-container" class="mb-8">
+            <div id="image-container" class="mb-4">
+                <!-- Question image will be inserted here -->
+            </div>
+            <h2 id="question" class="text-xl font-semibold mb-4">Loading question...</h2>
+            <div id="options" class="grid grid-cols-1 gap-3">
+                <!-- Options will be inserted here -->
+            </div>
+        </div>
+
+        <div id="feedback" class="hidden mb-6 p-4 rounded-lg bg-blue-900/30 border border-blue-500/50">
+            <p id="feedback-text" class="text-center"></p>
+        </div>
+
+        <button id="next-btn" class="btn-geography w-full py-3 rounded-lg font-bold hidden">
+            Continue to Next Question
+        </button>
+    </div>
+
+    <script>
+        // Initialize animations and icons
+        AOS.init();
+        feather.replace();
+
+        // Game state
+        const gameState = {
+            level: 1,
+            xp: 0,
+            nextLevelXp: 100,
+            currentQuestion: 0,
+            questions: [
+                {
+                    question: "Which is the world's largest ocean?",
+                    options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+                    answer: 3,
+                    image: "https://images.unsplash.com/photo-1548266652-99cf27701ced?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                },
+                {
+                    question: "Which river is the longest in the world?",
+                    options: ["Amazon", "Nile", "Yangtze", "Mississippi"],
+                    answer: 1,
+                    image: "https://images.unsplash.com/photo-1598880796842-81f5d1ec0222?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                },
+                {
+                    question: "Which continent has the most countries?",
+                    options: ["Asia", "Africa", "Europe", "South America"],
+                    answer: 1,
+                    image: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                },
+                {
+                    question: "What is the capital of Canada?",
+                    options: ["Toronto", "Vancouver", "Ottawa", "Montreal"],
+                    answer: 2,
+                    image: "https://images.unsplash.com/photo-1519832979-6fa011b87667?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                },
+                {
+                    question: "Which desert is the largest in the world?",
+                    options: ["Gobi Desert", "Sahara Desert", "Arabian Desert", "Antarctic Desert"],
+                    answer: 3,
+                    image: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                },
+                {
+                    question: "Which mountain range separates Europe from Asia?",
+                    options: ["Alps", "Andes", "Himalayas", "Ural Mountains"],
+                    answer: 3,
+                    image: "https://images.unsplash.com/photo-1519669556870-6c0b95a0c9c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                },
+                {
+                    question: "Which country has the largest population in the world?",
+                    options: ["India", "United States", "China", "Indonesia"],
+                    answer: 2,
+                    image: "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                },
+                {
+                    question: "What is the process by which plants make their own food called?",
+                    options: ["Respiration", "Transpiration", "Photosynthesis", "Germination"],
+                    answer: 2,
+                    image: "https://images.unsplash.com/photo-1588591795085-5c5c718f2e2b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                },
+                {
+                    question: "Which of these countries is not in South America?",
+                    options: ["Chile", "Argentina", "Ethiopia", "Peru"],
+                    answer: 2,
+                    image: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                },
+                {
+                    question: "What is the name of the imaginary line that divides the Earth into Northern and Southern Hemispheres?",
+                    options: ["Tropic of Cancer", "Prime Meridian", "Equator", "Tropic of Capricorn"],
+                    answer: 2,
+                    image: "https://images.unsplash.com/photo-1614556298459-3a8851ed6353?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                }
+            ]
+        };
+
+        // DOM elements
+        const questionEl = document.getElementById('question');
+        const imageContainerEl = document.getElementById('image-container');
+        const optionsEl = document.getElementById('options');
+        const feedbackEl = document.getElementById('feedback');
+        const feedbackTextEl = document.getElementById('feedback-text');
+        const nextBtn = document.getElementById('next-btn');
+        const levelEl = document.getElementById('level');
+        const xpEl = document.getElementById('xp');
+        const nextLevelXpEl = document.getElementById('next-level-xp');
+        const progressFillEl = document.getElementById('progress-fill');
+
+        // Initialize game
+        function initGame() {
+            updateStats();
+            loadQuestion();
+        }
+
+        // Load question
+        function loadQuestion() {
+            const question = gameState.questions[gameState.currentQuestion];
+            questionEl.textContent = question.question;
+            
+            // Add image
+            imageContainerEl.innerHTML = '';
+            if (question.image) {
+                const imgEl = document.createElement('img');
+                imgEl.src = question.image;
+                imgEl.alt = "Question image";
+                imgEl.className = 'question-image';
+                imageContainerEl.appendChild(imgEl);
+            }
+            
+            optionsEl.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const optionEl = document.createElement('button');
+                optionEl.className = 'btn-geography py-3 px-4 rounded-lg text-left';
+                optionEl.textContent = option;
+                optionEl.dataset.index = index;
+                optionEl.addEventListener('click', () => selectAnswer(index));
+                optionsEl.appendChild(optionEl);
+            });
+            
+            feedbackEl.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+        }
+
+        // Select answer
+        function selectAnswer(selectedIndex) {
+            const question = gameState.questions[gameState.currentQuestion];
+            const options = Array.from(optionsEl.children);
+            
+            // Disable all options
+            options.forEach(option => {
+                option.disabled = true;
+            });
+            
+            // Check if answer is correct
+            if (selectedIndex === question.answer) {
+                // Correct answer
+                options[selectedIndex].classList.add('correct-answer', 'bg-green-500/20', 'border-green-500');
+                feedbackTextEl.textContent = 'Correct! +20 XP';
+                feedbackEl.classList.remove('hidden');
+                feedbackEl.classList.add('bg-green-900/30', 'border-green-500/50');
+                feedbackEl.classList.remove('bg-red-900/30', 'border-red-500/50');
+                
+                // Add XP
+                gameState.xp += 20;
+                checkLevelUp();
+                updateStats();
+            } else {
+                // Wrong answer
+                options[selectedIndex].classList.add('bg-red-500/20', 'border-red-500');
+                options[question.answer].classList.add('bg-green-500/20', 'border-green-500');
+                feedbackTextEl.textContent = `Incorrect! The correct answer is: ${question.options[question.answer]}`;
+                feedbackEl.classList.remove('hidden');
+                feedbackEl.classList.add('bg-red-900/30', 'border-red-500/50');
+                feedbackEl.classList.remove('bg-green-900/30', 'border-green-500/50');
+            }
+            
+            nextBtn.classList.remove('hidden');
+        }
+
+        // Check for level up
+        function checkLevelUp() {
+            if (gameState.xp >= gameState.nextLevelXp) {
+                gameState.level++;
+                gameState.nextLevelXp = Math.floor(gameState.nextLevelXp * 1.5);
+                
+                // Show level up animation
+                levelEl.classList.add('level-up');
+                setTimeout(() => {
+                    levelEl.classList.remove('level-up');
+                }, 2000);
+            }
+        }
+
+        // Update stats display
+        function updateStats() {
+            levelEl.textContent = gameState.level;
+            xpEl.textContent = gameState.xp;
+            nextLevelXpEl.textContent = gameState.nextLevelXp;
+            
+            // Update progress bar
+            const progressPercentage = (gameState.xp / gameState.nextLevelXp) * 100;
+            progressFillEl.style.width = `${Math.min(100, progressPercentage)}%`;
+        }
+
+        // Next question
+        function nextQuestion() {
+            gameState.currentQuestion++;
+            
+            if (gameState.currentQuestion >= gameState.questions.length) {
+                // Game completed
+                questionEl.textContent = "Congratulations! You've completed the Geography Explorer Quiz!";
+                imageContainerEl.innerHTML = '';
+                optionsEl.innerHTML = '';
+                feedbackEl.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+                
+                // Show restart button
+                const restartBtn = document.createElement('button');
+                restartBtn.className = 'btn-geography w-full py-3 rounded-lg font-bold';
+                restartBtn.textContent = 'Play Again';
+                restartBtn.addEventListener('click', () => {
+                    gameState.level = 1;
+                    gameState.xp = 0;
+                    gameState.nextLevelXp = 100;
+                    gameState.currentQuestion = 0;
+                    initGame();
+                });
+                optionsEl.appendChild(restartBtn);
+            } else {
+                loadQuestion();
+            }
+        }
+
+        // Event listeners
+        nextBtn.addEventListener('click', nextQuestion);
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>

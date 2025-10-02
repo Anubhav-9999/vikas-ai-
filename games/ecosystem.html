@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ecosystem Image Quiz</title>
+  <style>
+    :root{--bg:#0b1220;--card:#072030;--accent:#38bdf8;--muted:#94a3b8}
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+    body{margin:0;background:linear-gradient(180deg,#061428 0%, #02111a 100%);color:#e6eef6;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .wrap{width:980px;max-width:100%;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+    h1{margin:0 0 6px;font-size:22px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+    .question{display:flex;gap:16px;align-items:flex-start;padding:12px;margin-bottom:12px;background:rgba(255,255,255,0.01);border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+    .qimg{width:180px;height:110px;flex-shrink:0;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.04)}
+    .qbody{flex:1}
+    label{display:block;font-size:15px;margin-bottom:6px;color:#d7e9f2}
+    input[type=text]{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;font-size:15px}
+    .controls{display:flex;gap:10px;align-items:center;margin-top:12px}
+    button{background:var(--accent);border:none;color:#022; padding:10px 14px;border-radius:8px;font-weight:600;cursor:pointer}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .status{margin-left:auto;color:var(--muted)}
+    .small{font-size:13px;color:var(--muted)}
+    .correct{border-color:rgba(34,197,94,0.9)!important;}
+    .wrong{border-color:rgba(239,68,68,0.9)!important;}
+    .overlay{position:fixed;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;background:linear-gradient(90deg, rgba(2,6,23,0.6), rgba(3,7,18,0.8));z-index:60}
+    .overlay.show{display:flex}
+    .modal{background:linear-gradient(180deg,#062132,#063451);padding:28px;border-radius:14px;text-align:center;border:1px solid rgba(255,255,255,0.06);box-shadow:0 18px 40px rgba(2,6,23,0.6);color:#e6f7ff}
+    .modal h2{margin:0 0 8px}
+    .modal p{margin:0 0 12px;color:#cfeff6}
+    .xp{font-weight:700;color:#fff;background:linear-gradient(90deg,#22c55e,#10b981);display:inline-block;padding:6px 12px;border-radius:999px}
+    .confetti{position:absolute;width:10px;height:20px;opacity:0.95;animation:fall 2.5s linear forwards}
+    @keyframes fall{0%{transform:translateY(-20vh) rotate(0)}100%{transform:translateY(110vh) rotate(720deg);opacity:1}}
+    .credits{font-size:12px;color:var(--muted);margin-top:8px}
+    @media (max-width:820px){.qimg{width:120px;height:84px}}
+    @media (max-width:520px){.question{flex-direction:column}.qimg{width:100%;height:180px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Image-Based Ecosystem Quiz</h1>
+    <p class="lead">Identify the ecosystem process or phenomenon shown in each image. 10 questions — earn XP when you finish all correctly.</p>
+
+    <div id="questions"></div>
+
+    <div class="controls">
+      <button id="checkBtn">Check Answers</button>
+      <button id="revealBtn" class="secondary">Reveal Answers</button>
+      <div class="status" id="status">0 / 10 correct</div>
+    </div>
+    <div class="credits">Images embedded directly (Base64).</div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2>🎉 Congratulations!</h2>
+      <p>You answered all 10 correctly and earned <span class="xp" id="xpAmt">100 XP</span>!</p>
+      <p class="small">Keep exploring ecosystems — every correct answer helps you level up.</p>
+      <button id="closeCongrats">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // QUESTIONS with BASE64 IMAGES
+    const items = [
+      {q: 'Identify: Volcanic eruption', img: 'data:image/jpeg;base64,PUT_BASE64_HERE', accepts:['volcano','volcanic eruption','eruption','volcanic activity']},
+      {q: 'Identify: Photosynthesis diagram', img: 'data:image/png;base64,PUT_BASE64_HERE', accepts:['photosynthesis','photosynthesis process']},
+      {q: 'Identify: Acid rain damage on leaves', img: 'data:image/jpeg;base64,PUT_BASE64_HERE', accepts:['acid rain','acid-rain','acid rain damage']},
+      {q: 'Identify: Earthquake fault / seismic wave', img: 'data:image/png;base64,PUT_BASE64_HERE', accepts:['earthquake','seismic','seismic wave','fault']},
+      {q: 'Identify: Tsunami wave', img: 'data:image/jpeg;base64,PUT_BASE64_HERE', accepts:['tsunami','tidal wave']},
+      {q: 'Identify: Landslide', img: 'data:image/jpeg;base64,PUT_BASE64_HERE', accepts:['landslide','mudslide']},
+      {q: 'Identify: Coral bleaching', img: 'data:image/jpeg;base64,PUT_BASE64_HERE', accepts:['coral bleaching','bleaching']},
+      {q: 'Identify: Glacier melting / retreat', img: 'data:image/jpeg;base64,PUT_BASE64_HERE', accepts:['glacier melt','glacier melting','glacial retreat','melting glacier']},
+      {q: 'Identify: Deforestation', img: 'data:image/jpeg;base64,PUT_BASE64_HERE', accepts:['deforestation','forest loss','clearcutting','clear cutting']},
+      {q: 'Identify: Cyclone / Hurricane', img: 'data:image/jpeg;base64,PUT_BASE64_HERE', accepts:['hurricane','cyclone','typhoon','tropical cyclone']}
+    ];
+
+    const container = document.getElementById('questions');
+    items.forEach((it, idx)=>{
+      const el = document.createElement('div'); el.className='question';
+      el.innerHTML = `
+        <img class="qimg" src="${it.img}" alt="${it.q}">
+        <div class="qbody">
+          <label for="ans${idx}">${idx+1}. ${it.q}</label>
+          <input id="ans${idx}" data-index="${idx}" type="text" placeholder="Type your answer...">
+        </div>
+      `;
+      container.appendChild(el);
+    });
+
+    function normalize(s){
+      if(!s) return '';
+      return s.toLowerCase().trim().replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,' ').replace(/[\.,!\?]/g,'');
+    }
+
+    function checkAll(){
+      let correct = 0;
+      items.forEach((it,i)=>{
+        const inp = document.getElementById('ans'+i);
+        const val = normalize(inp.value);
+        const ok = it.accepts.some(a=>normalize(a)===val);
+        inp.classList.remove('correct','wrong');
+        if(ok){ inp.classList.add('correct'); inp.disabled=true; correct++; }
+        else if(val.length>0){ inp.classList.add('wrong'); }
+      });
+      document.getElementById('status').textContent = `${correct} / ${items.length} correct`;
+      if(correct === items.length){ awardXP(); }
+    }
+
+    function revealAnswers(){
+      if(!confirm('Reveal all answers?')) return;
+      items.forEach((it,i)=>{
+        const inp = document.getElementById('ans'+i);
+        inp.value = it.accepts[0]; inp.disabled=true; inp.classList.remove('wrong'); inp.classList.add('correct');
+      });
+      document.getElementById('status').textContent = `${items.length} / ${items.length} correct`;
+      awardXP();
+    }
+
+    function awardXP(){
+      const xp = 100; // fixed reward
+      document.getElementById('xpAmt').textContent = xp + ' XP';
+      document.getElementById('overlay').classList.add('show');
+      spawnConfetti(36);
+    }
+
+    function spawnConfetti(n){
+      for(let i=0;i<n;i++){
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.left = Math.random()*100 + 'vw';
+        c.style.background = `hsl(${Math.floor(Math.random()*360)} 80% 60%)`;
+        c.style.transform = `translateY(-20vh) rotate(${Math.random()*360}deg)`;
+        c.style.animationDelay = (Math.random()*0.6)+'s';
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(),3000 + Math.random()*1200);
+      }
+    }
+
+    document.getElementById('checkBtn').addEventListener('click', checkAll);
+    document.getElementById('revealBtn').addEventListener('click', revealAnswers);
+    document.getElementById('closeCongrats').addEventListener('click', ()=>{
+      document.getElementById('overlay').classList.remove('show');
+    });
+
+    document.addEventListener('keydown', e=>{
+      if(e.key === 'Enter'){
+        const active = document.activeElement;
+        if(active && active.tagName === 'INPUT'){
+          const idx = active.dataset.index;
+          const it = items[idx];
+          const val = normalize(active.value);
+          const ok = it.accepts.some(a=>normalize(a)===val);
+          active.classList.remove('correct','wrong');
+          if(ok){ active.classList.add('correct'); active.disabled=true; }
+          else if(val.length>0){ active.classList.add('wrong'); }
+          checkAll();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Physics Fill-the-Letters Puzzle — Earn XP</title>
+  <style>
+    :root{--cell:48px;--gap:8px;--accent:#0ea5e9;--bg:#0f1724}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(180deg,#071024 0%, #061425 100%);color:#e6eef8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+    .wrap{width:100%;max-width:1100px;display:grid;grid-template-columns:1fr 380px;gap:24px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    h1{font-size:20px;margin:0 0 8px}
+    p.lead{margin:0 0 12px;color:#bcd7ee}
+
+    .board{display:grid;grid-template-columns:repeat(10,var(--cell));grid-auto-rows:var(--cell);gap:var(--gap);justify-content:center;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:10px}
+    .cell{width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center;background:#072033;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+    .cell input{all:unset;width:100%;height:100%;text-align:center;font-weight:800;font-size:18px;color:#e6eef8;caret-color:var(--accent);letter-spacing:2px}
+    .cell.empty{background:transparent;border:0}
+    .cell.correct{box-shadow:0 4px 12px rgba(16,185,129,0.12);background:linear-gradient(180deg,#052b22,#063427)}
+    .cell.incorrect{animation:shake .36s; box-shadow:0 4px 12px rgba(239,68,68,0.08);background:linear-gradient(180deg,#2b0b0b,#3a0d0d)}
+
+    @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
+
+    .sidebar h2{margin:0 0 8px}
+    .clues{margin-top:6px}
+    .clues ol{padding-left:18px}
+    .controls{display:flex;gap:8px;margin-top:12px}
+    button{background:var(--accent);border:0;padding:10px 12px;border-radius:10px;color:#042937;font-weight:700;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid rgba(14,165,233,0.14)}
+
+    .gift-wrap{display:flex;align-items:center;justify-content:center;height:220px}
+    .gift{width:120px;height:120px;border-radius:12px;background:linear-gradient(180deg,#fde68a,#fca5a5);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.4);transform-origin:center;transition:transform .35s ease}
+    .gift::before{content:'';position:absolute;left:50%;top:0;transform:translateX(-50%);width:16px;height:60px;background:#fff5;border-radius:6px}
+    .ribbon{position:absolute;top:40%;left:0;right:0;height:12px;background:#ef4444;border-radius:6px}
+    .bow{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:12px;background:#ef4444;display:flex;align-items:center;justify-content:center;font-weight:900;color:white}
+    .xp-badge{position:absolute;bottom:-18px;right:-18px;background:linear-gradient(180deg,#4ade80,#16a34a);color:#04291a;padding:8px 12px;border-radius:12px;font-weight:900;box-shadow:0 6px 18px rgba(16,185,129,0.18)}
+    .hidden{display:none}
+
+    .xp-counter{font-size:28px;font-weight:900;color:#bff0ff;text-align:center;margin-top:12px}
+    footer{grid-column:1/-1;margin-top:8px;color:#8fb1c8;font-size:13px;text-align:center}
+
+    @media (max-width:980px){.wrap{grid-template-columns:1fr} .gift-wrap{height:160px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <main class="card">
+      <h1>Physics Fill-the-Letters Puzzle</h1>
+      <p class="lead">Fill each row with the word that answers the clue. When all words are correct you'll unlock a gift box and earn XP!</p>
+
+      <div class="board" id="board" role="grid" aria-label="physics puzzle grid"></div>
+
+      <div class="controls">
+        <button id="check">Check</button>
+        <button id="reveal" class="ghost">Reveal</button>
+        <button id="reset" class="ghost">Reset</button>
+      </div>
+      <p id="status" style="margin-top:12px;font-weight:700;color:#cbeafe"></p>
+    </main>
+
+    <aside class="card sidebar">
+      <h2>Clues (Physics)</h2>
+      <div class="clues"><ol id="clues"></ol></div>
+
+      <div class="gift-wrap">
+        <div id="giftArea">
+          <div class="gift" id="gift" title="Click to open" aria-hidden="true">
+            <div class="ribbon" aria-hidden="true"></div>
+            <div class="bow">🎁</div>
+            <div class="xp-badge hidden" id="xpBadge">+0 XP</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="xp-counter" id="xpCounter">XP: 0</div>
+      <div style="text-align:center;margin-top:8px"><button id="claim" class="ghost">Claim XP</button></div>
+    </aside>
+
+    <footer>Physics puzzle — words chosen for learning. Modify clues and answers in the script.</footer>
+  </div>
+
+  <script>
+    // Puzzle words (max 10 columns)
+    const rows = [
+      {answer: 'VELOCITY', clue: '1. Speed with direction (8) '},
+      {answer: 'FORCE', clue: '2. Mass times acceleration (5)'},
+      {answer: 'MASS', clue: '3. Quantity of matter (4)'},
+      {answer: 'ENERGY', clue: '4. Capacity to do work (6)'},
+      {answer: 'MOMENTUM', clue: '5. Product of mass and velocity (8)'},
+      {answer: 'GRAVITY', clue: '6. Force attracting masses (7)'}
+    ];
+
+    const cols = 10;
+    const board = document.getElementById('board');
+    const cluesList = document.getElementById('clues');
+    const status = document.getElementById('status');
+
+    // build board
+    rows.forEach((rowObj, r)=>{
+      const letters = rowObj.answer.toUpperCase().split('');
+      for (let c=0;c<cols;c++){
+        const cell = document.createElement('div');
+        cell.className='cell';
+        cell.dataset.row=r; cell.dataset.col=c;
+        if (c < letters.length){
+          const inp = document.createElement('input'); inp.maxLength=1; inp.autocomplete='off'; inp.dataset.row=r; inp.dataset.col=c;
+          inp.setAttribute('aria-label', `Row ${r+1} Column ${c+1}`);
+          inp.addEventListener('input', onInput);
+          inp.addEventListener('keydown', onKeyDown);
+          cell.appendChild(inp);
+        } else { cell.classList.add('empty'); }
+        board.appendChild(cell);
+      }
+      const li = document.createElement('li'); li.textContent = rowObj.clue; cluesList.appendChild(li);
+    });
+
+    function getInput(r,c){ return board.querySelector(`input[data-row='${r}'][data-col='${c}']`); }
+
+    function onInput(e){
+      const input = e.target; input.value = input.value.toUpperCase().replace(/[^A-Z]/g,'');
+      const r = parseInt(input.dataset.row); const c = parseInt(input.dataset.col);
+      // move forward
+      const next = getInput(r, c+1);
+      if (next) next.focus();
+    }
+
+    function onKeyDown(e){
+      const input = e.target; const r = parseInt(input.dataset.row); const c = parseInt(input.dataset.col);
+      if (e.key === 'Backspace'){
+        if (input.value === ''){
+          const prev = getInput(r, c-1); if (prev){ prev.focus(); prev.value=''; e.preventDefault(); }
+        }
+      }
+      if (e.key === 'ArrowLeft'){ const prev = getInput(r,c-1); if(prev){prev.focus(); e.preventDefault();} }
+      if (e.key === 'ArrowRight'){ const next = getInput(r,c+1); if(next){next.focus(); e.preventDefault();} }
+    }
+
+    // check answers
+    function check(){
+      let correct = 0;
+      rows.forEach((rowObj,r)=>{
+        const ans = rowObj.answer.toUpperCase();
+        let user = '';
+        for (let c=0;c<ans.length;c++){ const inp = getInput(r,c); const v = (inp && inp.value)?inp.value.toUpperCase():''; user += v; }
+        if (user === ans){ correct++; for (let c=0;c<ans.length;c++){ getInput(r,c).parentElement.classList.remove('incorrect'); getInput(r,c).parentElement.classList.add('correct'); }}
+        else { for (let c=0;c<ans.length;c++){ const g = getInput(r,c); if(g){ g.parentElement.classList.remove('correct'); g.parentElement.classList.add('incorrect'); } } }
+      });
+      status.textContent = `Solved ${correct} of ${rows.length}`;
+      if (correct === rows.length) unlockGift();
+    }
+
+    function reveal(){ rows.forEach((rowObj,r)=>{ const ans=rowObj.answer.toUpperCase(); for(let c=0;c<ans.length;c++){ const i=getInput(r,c); i.value = ans[c]; i.parentElement.classList.add('correct'); } }); status.textContent='All answers revealed.'; unlockGift(); }
+    function resetAll(){ rows.forEach((rowObj,r)=>{ const ans=rowObj.answer.toUpperCase(); for(let c=0;c<ans.length;c++){ const i=getInput(r,c); i.value=''; i.parentElement.classList.remove('correct','incorrect'); } }); status.textContent=''; const f=getInput(0,0); if(f) f.focus(); }
+
+    document.getElementById('check').addEventListener('click', check);
+    document.getElementById('reveal').addEventListener('click', reveal);
+    document.getElementById('reset').addEventListener('click', resetAll);
+
+    // Gift & XP logic
+    const gift = document.getElementById('gift');
+    const xpBadge = document.getElementById('xpBadge');
+    const xpCounter = document.getElementById('xpCounter');
+    const claimBtn = document.getElementById('claim');
+
+    let xpTotal = 0; let unlocked = false; const XP_REWARD = 150; // fixed reward
+
+    function unlockGift(){ if (unlocked) return; unlocked = true; // show gift wiggle
+      gift.style.transform = 'scale(1.06) rotate(-2deg)'; setTimeout(()=>{ gift.style.transform='scale(1) rotate(0deg)'; },420);
+      xpBadge.textContent = `+${XP_REWARD} XP`; xpBadge.classList.remove('hidden');
+      status.textContent = 'Puzzle complete! Open the gift to claim your XP.';
+      // allow clicking
+      gift.onclick = openGift;
+    }
+
+    function openGift(){ if (!unlocked) return; // animate open
+      gift.style.transform='scale(1.08) translateY(-8px)';
+      setTimeout(()=>{
+        // increment XP with animation
+        animateXP(0, XP_REWARD, 1200);
+      },300);
+      // disable multiple opens
+      gift.onclick = null;
+    }
+
+    function animateXP(start, end, duration){ const startTime = performance.now(); function step(now){ const t = Math.min(1,(now-startTime)/duration); const ease = t<.5?2*t*t: -1+ (4-2*t)*t; const value = Math.round(start + (end-start)*ease); xpCounter.textContent = `XP: ${xpTotal + value}`; if (t<1) requestAnimationFrame(step); else { xpTotal += end; xpBadge.textContent = `+${end} XP`; } } requestAnimationFrame(step); }
+
+    claimBtn.addEventListener('click', ()=>{
+      if (!unlocked){ alert('Complete the puzzle to unlock the gift.'); return; }
+      // claim gives XP if not already claimed
+      if (claimBtn.dataset.claimed === 'true'){ alert('XP already claimed!'); return; }
+      claimBtn.dataset.claimed = 'true'; claimBtn.textContent = 'Claimed'; claimBtn.disabled = true; claimBtn.style.opacity = 0.8;
+      // little confetti effect (simple)
+      burstConfetti();
+    });
+
+    function burstConfetti(){ const confettiCount=24; for(let i=0;i<confettiCount;i++){ const el = document.createElement('div'); el.textContent = '⭐'; el.style.position='fixed'; el.style.left = (window.innerWidth/2 + (Math.random()-0.5)*240)+'px'; el.style.top = (window.innerHeight/2 + (Math.random()-0.5)*120)+'px'; el.style.fontSize = (10+Math.random()*18)+'px'; el.style.opacity = '0.95'; el.style.transform = `translateY(${ -20 - Math.random()*160 }px) rotate(${Math.random()*360}deg)`; el.style.transition = 'transform 900ms ease-out, opacity 900ms'; document.body.appendChild(el); setTimeout(()=>{ el.style.transform = `translateY(${ 200 + Math.random()*260 }px) rotate(${Math.random()*360}deg)`; el.style.opacity='0'; }, 20); setTimeout(()=>{ el.remove(); }, 1100); }
+    }
+
+    // auto-focus first input
+    window.addEventListener('load', ()=>{ const f=getInput(0,0); if(f) f.focus(); });
+  </script>
+</body>
+</html>

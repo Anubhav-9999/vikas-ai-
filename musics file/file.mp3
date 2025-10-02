@@ -1,0 +1,69 @@
+/public/music/quiz-background.mp3   <-- put your MP3 here
+/src/components/SidebarMusicPlayer.jsx
+/src/components/Sidebar.jsx
+import React, { useState, useRef } from "react";
+
+export default function SidebarMusicPlayer() {
+  const audioRef = useRef(null);
+
+  // Add more tracks here as {label, src}
+  const tracks = [
+    {
+      label: "Quiz Background Music",
+      src: "/music/quiz-background.mp3",
+    },
+    // Example extra track:
+    // { label: "Focus Track 2", src: "/music/focus2.mp3" },
+  ];
+
+  const [currentTrack, setCurrentTrack] = useState(tracks[0].src);
+
+  const handleTrackChange = (e) => {
+    setCurrentTrack(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.load();
+      audioRef.current.play();
+    }
+  };
+
+  return (
+    <div className="p-4 bg-gray-100 rounded-2xl shadow-md">
+      <h4 className="text-lg font-bold mb-2">Background Music</h4>
+
+      <select
+        value={currentTrack}
+        onChange={handleTrackChange}
+        className="w-full mb-2 p-1 rounded border"
+      >
+        {tracks.map((track) => (
+          <option key={track.src} value={track.src}>
+            {track.label}
+          </option>
+        ))}
+      </select>
+
+      <audio
+        ref={audioRef}
+        controls
+        loop
+        className="w-full"
+      >
+        <source src={currentTrack} type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
+    </div>
+  );
+}
+import React from "react";
+import SidebarMusicPlayer from "./SidebarMusicPlayer";
+
+export default function Sidebar() {
+  return (
+    <aside className="w-64 h-screen bg-white border-r p-4 flex flex-col gap-4">
+      {/* Other sidebar elements like navigation, quiz info etc. */}
+      
+      {/* Music Player */}
+      <SidebarMusicPlayer />
+    </aside>
+  );
+}

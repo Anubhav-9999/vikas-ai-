@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Multilingual Fill-the-Word Puzzle</title>
+  <style>
+    :root{--bg:#0f172a;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8}
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+    body{margin:0;background:linear-gradient(180deg,#071023 0%, #071a2a 100%);color:#e6eef6;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px}
+    .wrap{width:980px;max-width:100%;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:28px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+    h1{margin:0 0 6px;font-size:22px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .card{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+    label{display:block;font-size:14px;margin-bottom:6px;color:#d7e9f2}
+    .row{display:flex;gap:8px;align-items:center}
+    input[type=text]{flex:1;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;font-size:15px}
+    button{background:var(--accent);border:none;color:#042028;padding:10px 14px;border-radius:8px;font-weight:600;cursor:pointer}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .status{margin-top:12px;font-size:14px;color:var(--muted)}
+    .correct{border-color:rgba(34,197,94,0.9)!important;box-shadow:0 6px 18px rgba(16,185,129,0.06)}
+    .wrong{border-color:rgba(239,68,68,0.9)!important;box-shadow:0 6px 18px rgba(239,68,68,0.06)}
+
+    /* congratulations overlay */
+    .overlay{position:fixed;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;background:linear-gradient(90deg, rgba(2,6,23,0.6), rgba(3,7,18,0.8));z-index:60}
+    .overlay.show{display:flex}
+    .modal{background:linear-gradient(180deg,#062132,#063451);padding:28px;border-radius:14px;text-align:center;border:1px solid rgba(255,255,255,0.06);box-shadow:0 18px 40px rgba(2,6,23,0.6);color:#e6f7ff}
+    .modal h2{margin:0 0 8px}
+    .modal p{margin:0 0 16px;color:#cfeff6}
+
+    /* confetti simple */
+    .confetti{position:absolute;width:10px;height:20px;opacity:0.95;animation:fall 2.2s linear forwards}
+    @keyframes fall{0%{transform:translateY(-20vh) rotate(0)}100%{transform:translateY(110vh) rotate(720deg);opacity:1}}
+
+    footer{margin-top:16px;color:var(--muted);font-size:13px}
+
+    @media (max-width:700px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Multilingual Fill-the-Word Puzzle</h1>
+    <p class="lead">Fill the correct word for each prompt (we accept several common variants, including native scripts and romanizations). There are 10 prompts — get them all right to win!</p>
+
+    <div class="grid" id="puzzleGrid">
+      <!-- Cards will be injected by JS -->
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;align-items:center">
+      <button id="checkBtn">Check Answers</button>
+      <button id="revealBtn" class="secondary">Reveal Answers</button>
+      <div class="status" id="status">0 / 10 correct</div>
+    </div>
+
+    <footer>Tip: answers are not case-sensitive. You may enter native script or romanized spellings (e.g. "konnichiwa" or "こんにちは").</footer>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2>🎉 Congratulations!</h2>
+      <p>You completed the multilingual puzzle — all 10 correct. Well done!</p>
+      <button id="closeCongrats">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const prompts = [
+      {q: "Hello (Japanese)", accepts: ["konnichiwa", "こんにちは"]},
+      {q: "Hello (Spanish)", accepts: ["hola"]},
+      {q: "Hello (French)", accepts: ["bonjour"]},
+      {q: "Hello (German)", accepts: ["hallo", "guten tag", "guten-tag"]},
+      {q: "Hello (Hindi)", accepts: ["namaste", "नमस्ते"]},
+      {q: "Hello (Arabic)", accepts: ["marhaban", "مرحبا", "salaam", "سلام", "as-salamu alaykum", "assalamu alaikum"]},
+      {q: "Hello (Chinese - Mandarin)", accepts: ["nihao", "你好", "nǐ hǎo", "ni hao"]},
+      {q: "Hello (Russian)", accepts: ["privet", "привет", "zdravstvuyte", "здравствуйте"]},
+      {q: "Hello (Italian)", accepts: ["ciao", "salve"]},
+      {q: "Hello (Portuguese)", accepts: ["ola", "olá"]}
+    ];
+
+    const grid = document.getElementById('puzzleGrid');
+
+    prompts.forEach((p, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <label for="ans${i}">${i+1}. ${p.q}</label>
+        <div class="row">
+          <input id="ans${i}" data-index="${i}" type="text" autocomplete="off" placeholder="Type your answer...">
+          <button class="secondary" data-hint="${i}">Hint</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    function normalize(s){
+      if(!s) return '';
+      return s.toLowerCase().trim().replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g,' ')
+        .replace(/[\.,!\?]/g,'')
+        ;
+    }
+
+    function checkAll(){
+      let correct = 0;
+      prompts.forEach((p,i)=>{
+        const inp = document.querySelector(`#ans${i}`);
+        const val = normalize(inp.value);
+        const ok = p.accepts.some(a => normalize(a) === val);
+        inp.classList.remove('correct','wrong');
+        if(ok){ inp.classList.add('correct'); inp.disabled = true; correct++; }
+        else if(val.length>0){ inp.classList.add('wrong'); }
+      });
+      document.getElementById('status').textContent = `${correct} / ${prompts.length} correct`;
+      if(correct === prompts.length){ showCongrats(); }
+    }
+
+    function revealAnswers(){
+      if(!confirm('Reveal all answers? This will fill the inputs with the accepted primary answers.')) return;
+      prompts.forEach((p,i)=>{
+        const inp = document.querySelector(`#ans${i}`);
+        inp.value = p.accepts[0];
+        inp.classList.remove('wrong');
+        inp.classList.add('correct');
+        inp.disabled = true;
+      });
+      document.getElementById('status').textContent = `${prompts.length} / ${prompts.length} correct`;
+      showCongrats();
+    }
+
+    function showCongrats(){
+      const overlay = document.getElementById('overlay');
+      overlay.classList.add('show');
+      spawnConfetti(36);
+    }
+
+    function spawnConfetti(n){
+      for(let i=0;i<n;i++){
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.left = Math.random()*100 + 'vw';
+        c.style.background = `hsl(${Math.floor(Math.random()*360)} 80% 60%)`;
+        c.style.transform = `translateY(-20vh) rotate(${Math.random()*360}deg)`;
+        c.style.animationDelay = (Math.random()*0.6)+'s';
+        c.style.opacity = 0.95;
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(),3000 + Math.random()*1200);
+      }
+    }
+
+    document.getElementById('checkBtn').addEventListener('click', checkAll);
+    document.getElementById('revealBtn').addEventListener('click', revealAnswers);
+    document.getElementById('closeCongrats').addEventListener('click', ()=>{
+      document.getElementById('overlay').classList.remove('show');
+    });
+
+    // allow Enter key to check the current row
+    document.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){
+        const active = document.activeElement;
+        if(active && active.tagName === 'INPUT'){
+          const idx = active.dataset.index;
+          const p = prompts[idx];
+          const val = normalize(active.value);
+          const ok = p.accepts.some(a => normalize(a) === val);
+          active.classList.remove('correct','wrong');
+          if(ok){ active.classList.add('correct'); active.disabled = true; }
+          else if(val.length>0){ active.classList.add('wrong'); }
+          checkAll();
+        }
+      }
+    });
+
+    // hint buttons
+    document.querySelectorAll('button[data-hint]').forEach(btn => {
+      btn.addEventListener('click', e=>{
+        const idx = btn.dataset.hint;
+        const p = prompts[idx];
+        alert(`Hint for ${p.q}: the primary accepted answer is \"${p.accepts[0]}\" (but other variants are accepted).`);
+      });
+    });
+
+  </script>
+</body>
+</html>
